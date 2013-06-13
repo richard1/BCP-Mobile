@@ -10,6 +10,10 @@ import java.io.Writer;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLSession;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.xmlpull.v1.XmlPullParserException;
@@ -21,9 +25,12 @@ import android.content.Intent;
 import android.view.Menu;
 import android.webkit.WebView;
 
+import bcp.web.bcpgradebook.R;
+
 public class GradeViewActivity extends Activity {
 	
 	private String url;
+	private String gradesUrl;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -31,7 +38,9 @@ public class GradeViewActivity extends Activity {
 		Intent intent = this.getIntent();
 		String username = intent.getStringExtra(MainActivity.USERNAME);
 		String password = intent.getStringExtra(MainActivity.PASSWORD);
-		url = "https://brycepauken.com/api/3541/login.php?username=" + username + "&password=" + password;
+		url = "http://didjem.com/bell_api/login.php?username=" + username + "&password=" + password;
+		gradesUrl = "http://didjem.com/bell_api/grades.php?username=" + username;
+		HttpsURLConnection.setDefaultHostnameVerifier(new FakeHostnameVerifier());
 		setContentView(R.layout.activity_grade_view);
 	}
 
@@ -46,6 +55,9 @@ public class GradeViewActivity extends Activity {
 	public void onStart()
 	{
 		super.onStart();
+		WebView wv = (WebView)findViewById(R.id.webView1);
+		wv.loadData("Loading, please wait...", "text/html", null);
+		System.out.println(url);
 		new DownloadPasswordTask().execute(url);
 	}
 	
@@ -57,16 +69,48 @@ public class GradeViewActivity extends Activity {
 			try {
 				return loadPasswordFromNetwork(urls[0]);
 			} catch(IOException e) {
+				e.printStackTrace();
 				return getResources().getString(R.string.connection_error);
 			} catch(JSONException e) {
+				e.printStackTrace();
 				return getResources().getString(R.string.json_error) + e.toString();
+			} catch(Exception e) {
+				return "Unknown Exception!: " + e.toString();
 			}
 		}
 		
 		@Override
 		protected void onPostExecute(String result)
 		{
-			setContentView(R.layout.activity_main);
+			System.out.println(result);
+			gradesUrl += "&password=" + result;
+			System.out.println(gradesUrl);
+			new DownloadGradesTask().execute(gradesUrl);
+		}
+	}
+	
+	private class DownloadGradesTask extends AsyncTask<String, Void, String>
+	{
+		@Override
+		protected String doInBackground(String... urls)
+		{
+			try {
+				return loadGradesFromNetwork(urls[0]);
+			} catch(IOException e) {
+				e.printStackTrace();
+				return getResources().getString(R.string.connection_error);
+			} catch(JSONException e) {
+				e.printStackTrace();
+				return getResources().getString(R.string.json_error) + e.toString();
+			} catch(Exception e) {
+				return "Unknown Exception!: " + e.toString();
+			}
+		}
+		
+		@Override
+		protected void onPostExecute(String result)
+		{
+			setContentView(R.layout.activity_grade_view);
 			WebView wv = (WebView)findViewById(R.id.webView1);
 			wv.loadData(result, "text/html", null);
 		}
@@ -75,6 +119,7 @@ public class GradeViewActivity extends Activity {
 	private String loadPasswordFromNetwork(String urlString) throws IOException, JSONException
 	{
 		InputStream stream = null;
+		String encryptPass = "";
 		String json = "";
 		try
 		{
@@ -84,10 +129,31 @@ public class GradeViewActivity extends Activity {
 			if(stream != null)
 				stream.close();
 		}
+		System.out.println(json);
 		JSONObject result = new JSONObject(json);
 		JSONObject dat = result.getJSONObject("data");
-		String encryptPass = dat.getString("encryptedPass");
+		encryptPass = dat.getString("encryptedPass");
 		return encryptPass;
+	}
+	
+	private String loadGradesFromNetwork(String urlString) throws IOException, JSONException
+	{
+		InputStream stream = null;
+		String rawJson = "";
+		try
+		{
+			stream = downloadUrl(urlString);
+			rawJson = convertStreamToString(stream);
+		} finally {
+			if(stream != null)
+				stream.close();
+		}
+		System.out.println(rawJson);
+		JSONObject result = new JSONObject(rawJson);
+		int error = result.getInt("error");
+		if(error != 0)
+			return "<h3>Failed to retrieve your grades.</h3> <p>The page might be down, try again later.</p> <p>Error code: " + error + "</p>";
+		return "Under construction";
 	}
 	
 	private InputStream downloadUrl(String urlString) throws IOException
@@ -122,5 +188,15 @@ public class GradeViewActivity extends Activity {
             return "";
         }
     }
+	
+	private static class FakeHostnameVerifier implements HostnameVerifier
+	{
+
+		@Override
+		public boolean verify(String arg0, SSLSession arg1) {
+			return true;
+		}
+		
+	}
 
 }
