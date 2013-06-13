@@ -14,6 +14,7 @@ import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLSession;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.xmlpull.v1.XmlPullParserException;
@@ -152,8 +153,23 @@ public class GradeViewActivity extends Activity {
 		JSONObject result = new JSONObject(rawJson);
 		int error = result.getInt("error");
 		if(error != 0)
-			return "<h3>Failed to retrieve your grades.</h3> <p>The page might be down, try again later.</p> <p>Error code: " + error + "</p>";
-		return "Under construction";
+			return "<h3>Failed to retrieve your grades.</h3> <p>The page might be down, please try again later.</p> <p>Error code: " + error + "</p>";
+		String output = "";
+		JSONObject data = result.getJSONObject("data");
+		JSONArray sem1 = data.getJSONArray("semester1");
+		output += "Semester 1<br />";
+		for(int i = 0; i < sem1.length(); i++) {
+			JSONObject row = sem1.getJSONObject(i);
+			output += row.getString("class") + " - " + row.getString("grade") + " (" + row.getString("percentage") + ")<br />";
+		}
+		
+		output += "<br />Semester 2<br />";
+		JSONArray sem2 = data.getJSONArray("semester2");
+		for(int i = 0; i < sem2.length(); i++) {
+			JSONObject row = sem2.getJSONObject(i);
+			output += row.getString("class") + " - " + row.getString("grade") + " (" + row.getString("percentage") + ")<br />";
+		}
+		return output;
 	}
 	
 	private InputStream downloadUrl(String urlString) throws IOException
