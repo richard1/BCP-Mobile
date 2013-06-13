@@ -152,22 +152,29 @@ public class GradeViewActivity extends Activity {
 		System.out.println(rawJson);
 		JSONObject result = new JSONObject(rawJson);
 		int error = result.getInt("error");
-		if(error != 0)
-			return "<h3>Failed to retrieve your grades.</h3> <p>The page might be down, please try again later.</p> <p>Error code: " + error + "</p>";
+		if(error != 0) {
+			switch(error) {
+				case 1: case 3: default:
+					return "<h3>Failed to retrieve your grades.</h3> <p>The page might be down, please try again later. [" + error + "]</p>";
+				case 2:
+					return "<h3>Incorrect username or password.</h3>";
+			}
+		}
 		String output = "";
 		JSONObject data = result.getJSONObject("data");
 		JSONArray sem1 = data.getJSONArray("semester1");
-		output += "Semester 1<br />";
+		output += "<h2>Semester 1</h2>";
 		for(int i = 0; i < sem1.length(); i++) {
 			JSONObject row = sem1.getJSONObject(i);
-			output += row.getString("class") + " - " + row.getString("grade") + " (" + row.getString("percentage") + ")<br />";
+			if(!row.getString("class").equals("Homeroom"))
+				output += "<b>" + row.getString("class") + "</b>: " + row.getString("grade") + " (" + row.getString("percentage") + ")<br />";
 		}
 		
-		output += "<br />Semester 2<br />";
+		output += "<br /><h2>Semester 2</h2>";
 		JSONArray sem2 = data.getJSONArray("semester2");
 		for(int i = 0; i < sem2.length(); i++) {
 			JSONObject row = sem2.getJSONObject(i);
-			output += row.getString("class") + " - " + row.getString("grade") + " (" + row.getString("percentage") + ")<br />";
+			output += "<b>" + row.getString("class") + "</b>: " + row.getString("grade") + " (" + row.getString("percentage") + ")<br />";
 		}
 		return output;
 	}
