@@ -22,14 +22,21 @@ import org.xmlpull.v1.XmlPullParserException;
 
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.app.ActionBar;
 import android.app.Activity;
+import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.Intent;
 import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
+import android.view.WindowManager;
+import android.view.inputmethod.InputMethodManager;
 import android.webkit.WebView;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
+import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Toast;
 
@@ -37,33 +44,43 @@ import bcp.web.bcpgradebook.R;
 
 public class GradeViewActivity extends Activity {
 	
-	private String url;
+	//url
 	private String gradesUrl;
 	private ListView myList;
 	ArrayAdapter<String> adapter;
 	private ArrayList<String> listContent = new ArrayList<String>();
 	public static final String COURSE_ID = "bcp.web.bcpgradebook.courseid";
 	OnItemClickListener listener;
+	ProgressDialog progress;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		Intent intent = this.getIntent();
-		String username = intent.getStringExtra(MainActivity.USERNAME);
-		String password = intent.getStringExtra(MainActivity.PASSWORD);
-		url = "http://didjem.com/bell_api/login.php?username=" + username + "&password=" + password;
-		gradesUrl = "http://didjem.com/bell_api/grades.php?username=" + username;
-		setContentView(R.layout.activity_grade_view);
+		setTitle("My Courses");
 		
-		for(int i = 0; i<10; i++) {
-			listContent.add("" + (int)(Math.random()*10000));
-		}
+		Intent intent = this.getIntent();
+		String username = intent.getStringExtra("username");
+		String encryptedPassword = intent.getStringExtra("encryptedPassword");
+		System.out.println("user: " + username + ", pass: " + encryptedPassword);
+		
+		gradesUrl = "http://didjem.com/bell_api/grades.php?username=" + username + "&password=" + encryptedPassword;
+		setContentView(R.layout.activity_grade_view);
+			
+		progress = new ProgressDialog(this);
+		progress.setTitle("Loading");
+		progress.setMessage("Fetching your grades...");
+		progress.setCanceledOnTouchOutside(false);
+		progress.show();
 		
 		populateList(R.id.listView1, listContent);
 		listener = new OnItemClickListener() {
 			@Override
 			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 				Toast.makeText(getApplicationContext(), "Item #: " + position, Toast.LENGTH_SHORT).show();
+				Intent intent = new Intent(getBaseContext(), CourseDetailActivity.class);
+				intent.putExtra(COURSE_ID, "Item #: " + position);
+				startActivity(intent);
+				overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
 			}
 		};
 	}
@@ -82,54 +99,21 @@ public class GradeViewActivity extends Activity {
 		return true;
 	}
 	
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
+    }
+	
 	@Override
-	public void onStart()
-	{
+	public void onStart() {
 		super.onStart();
-		/*
-		WebView wv = (WebView)findViewById(R.id.webView1);
-		wv.loadData("Loading, please wait...", "text/html", null);
-		System.out.println(url);
-		*/
-		new DownloadPasswordTask().execute(url);
-		
+		new DownloadGradesTask().execute(gradesUrl);		
 		populateList(R.id.listView1, listContent);
 		adapter.notifyDataSetChanged();
 	}
 	
-	private class DownloadPasswordTask extends AsyncTask<String, Void, String>
-	{
+	private class DownloadGradesTask extends AsyncTask<String, Void, String> {
 		@Override
-		protected String doInBackground(String... urls)
-		{
-			try {
-				return loadPasswordFromNetwork(urls[0]);
-			} catch(IOException e) {
-				e.printStackTrace();
-				return getResources().getString(R.string.connection_error);
-			} catch(JSONException e) {
-				e.printStackTrace();
-				return getResources().getString(R.string.json_error) + e.toString();
-			} catch(Exception e) {
-				return "Unknown Exception!: " + e.toString();
-			}
-		}
-		
-		@Override
-		protected void onPostExecute(String result)
-		{
-			System.out.println(result);
-			gradesUrl += "&password=" + result;
-			System.out.println(gradesUrl);
-			new DownloadGradesTask().execute(gradesUrl);
-		}
-	}
-	
-	private class DownloadGradesTask extends AsyncTask<String, Void, String>
-	{
-		@Override
-		protected String doInBackground(String... urls)
-		{
+		protected String doInBackground(String... urls) {
 			try {
 				return loadGradesFromNetwork(urls[0]);
 			} catch(IOException e) {
@@ -144,45 +128,18 @@ public class GradeViewActivity extends Activity {
 		}
 		
 		@Override
-		protected void onPostExecute(String result)
-		{
+		protected void onPostExecute(String result) {
 			adapter.notifyDataSetChanged();
-			setContentView(R.layout.activity_grade_view);
-			/*
-			WebView wv = (WebView)findViewById(R.id.webView1);
-			wv.loadData(result, "text/html", null);
-			*/
-			
+			setContentView(R.layout.activity_grade_view);			
 			populateList(R.id.listView1, listContent);
+			progress.dismiss();
 		}
 	}
 	
-	private String loadPasswordFromNetwork(String urlString) throws IOException, JSONException
-	{
-		InputStream stream = null;
-		String encryptPass = "";
-		String json = "";
-		try
-		{
-			stream = downloadUrl(urlString);
-			json = convertStreamToString(stream);
-		} finally {
-			if(stream != null)
-				stream.close();
-		}
-		System.out.println(json);
-		JSONObject result = new JSONObject(json);
-		JSONObject dat = result.getJSONObject("data");
-		encryptPass = dat.getString("encryptedPass");
-		return encryptPass;
-	}
-	
-	private String loadGradesFromNetwork(String urlString) throws IOException, JSONException
-	{
+	private String loadGradesFromNetwork(String urlString) throws IOException, JSONException {
 		InputStream stream = null;
 		String rawJson = "";
-		try
-		{
+		try {
 			stream = downloadUrl(urlString);
 			rawJson = convertStreamToString(stream);
 		} finally {
@@ -193,10 +150,13 @@ public class GradeViewActivity extends Activity {
 		JSONObject result = new JSONObject(rawJson);
 		int error = result.getInt("error");
 		if(error != 0) {
+			Toast.makeText(getApplicationContext(), "ERROR", Toast.LENGTH_SHORT).show();
 			switch(error) {
 				case 1: case 3: default:
+					Toast.makeText(getApplicationContext(), "Failed to retrieve your grades. The page might be down, please try again later. [" + error + "]", Toast.LENGTH_SHORT).show();
 					return "<h3>Failed to retrieve your grades.</h3> <p>The page might be down, please try again later. [" + error + "]</p>";
 				case 2:
+					Toast.makeText(getApplicationContext(), "Incorrect username or password", Toast.LENGTH_SHORT).show();
 					return "<h3>Incorrect username or password.</h3>";
 			}
 		}
@@ -227,8 +187,7 @@ public class GradeViewActivity extends Activity {
 		return output;
 	}
 	
-	private InputStream downloadUrl(String urlString) throws IOException
-	{
+	private InputStream downloadUrl(String urlString) throws IOException {
 		URL url = new URL(urlString);
 		HttpURLConnection conn = (HttpURLConnection)url.openConnection();
 		conn.setReadTimeout(10000 /* milliseconds */);
