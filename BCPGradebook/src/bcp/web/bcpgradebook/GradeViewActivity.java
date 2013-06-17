@@ -9,6 +9,7 @@ import java.io.StringWriter;
 import java.io.Writer;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.ArrayList;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
@@ -24,7 +25,13 @@ import android.os.Bundle;
 import android.app.Activity;
 import android.content.Intent;
 import android.view.Menu;
+import android.view.View;
 import android.webkit.WebView;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
+import android.widget.Toast;
 
 import bcp.web.bcpgradebook.R;
 
@@ -32,6 +39,11 @@ public class GradeViewActivity extends Activity {
 	
 	private String url;
 	private String gradesUrl;
+	private ListView myList;
+	ArrayAdapter<String> adapter;
+	private ArrayList<String> listContent = new ArrayList<String>();
+	public static final String COURSE_ID = "bcp.web.bcpgradebook.courseid";
+	OnItemClickListener listener;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -41,8 +53,26 @@ public class GradeViewActivity extends Activity {
 		String password = intent.getStringExtra(MainActivity.PASSWORD);
 		url = "http://didjem.com/bell_api/login.php?username=" + username + "&password=" + password;
 		gradesUrl = "http://didjem.com/bell_api/grades.php?username=" + username;
-		HttpsURLConnection.setDefaultHostnameVerifier(new FakeHostnameVerifier());
 		setContentView(R.layout.activity_grade_view);
+		
+		for(int i = 0; i<10; i++) {
+			listContent.add("" + (int)(Math.random()*10000));
+		}
+		
+		populateList(R.id.listView1, listContent);
+		listener = new OnItemClickListener() {
+			@Override
+			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+				Toast.makeText(getApplicationContext(), "Item #: " + position, Toast.LENGTH_SHORT).show();
+			}
+		};
+	}
+	
+	public void populateList(int list, ArrayList<String> content) {
+		myList = (ListView)findViewById(list);
+		adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, content);
+		myList.setAdapter(adapter);
+		myList.setOnItemClickListener(listener); 
 	}
 
 	@Override
@@ -56,10 +86,15 @@ public class GradeViewActivity extends Activity {
 	public void onStart()
 	{
 		super.onStart();
+		/*
 		WebView wv = (WebView)findViewById(R.id.webView1);
 		wv.loadData("Loading, please wait...", "text/html", null);
 		System.out.println(url);
+		*/
 		new DownloadPasswordTask().execute(url);
+		
+		populateList(R.id.listView1, listContent);
+		adapter.notifyDataSetChanged();
 	}
 	
 	private class DownloadPasswordTask extends AsyncTask<String, Void, String>
@@ -111,9 +146,14 @@ public class GradeViewActivity extends Activity {
 		@Override
 		protected void onPostExecute(String result)
 		{
+			adapter.notifyDataSetChanged();
 			setContentView(R.layout.activity_grade_view);
+			/*
 			WebView wv = (WebView)findViewById(R.id.webView1);
 			wv.loadData(result, "text/html", null);
+			*/
+			
+			populateList(R.id.listView1, listContent);
 		}
 	}
 	
@@ -160,21 +200,29 @@ public class GradeViewActivity extends Activity {
 					return "<h3>Incorrect username or password.</h3>";
 			}
 		}
+		listContent.clear();
 		String output = "";
 		JSONObject data = result.getJSONObject("data");
 		JSONArray sem1 = data.getJSONArray("semester1");
 		output += "<h2>Semester 1</h2>";
 		for(int i = 0; i < sem1.length(); i++) {
 			JSONObject row = sem1.getJSONObject(i);
-			if(!row.getString("class").equals("Homeroom"))
-				output += "<b>" + row.getString("class") + "</b>: " + row.getString("grade") + " (" + row.getString("percentage") + ")<br />";
+			if(!row.getString("class").equals("Homeroom")) {
+				String course = row.getString("class") + ": " + row.getString("grade") + " (" + row.getString("percentage") + ")";
+				output += course + "<br />";
+				listContent.add(course);
+			}
 		}
 		
 		output += "<br /><h2>Semester 2</h2>";
 		JSONArray sem2 = data.getJSONArray("semester2");
 		for(int i = 0; i < sem2.length(); i++) {
 			JSONObject row = sem2.getJSONObject(i);
-			output += "<b>" + row.getString("class") + "</b>: " + row.getString("grade") + " (" + row.getString("percentage") + ")<br />";
+			if(!row.getString("class").equals("Homeroom")) {
+				String course = row.getString("class") + ": " + row.getString("grade") + " (" + row.getString("percentage") + ")";
+				output += course + "<br />";
+				listContent.add(course);
+			}
 		}
 		return output;
 	}
@@ -211,15 +259,4 @@ public class GradeViewActivity extends Activity {
             return "";
         }
     }
-	
-	private static class FakeHostnameVerifier implements HostnameVerifier
-	{
-
-		@Override
-		public boolean verify(String arg0, SSLSession arg1) {
-			return true;
-		}
-		
-	}
-
 }
