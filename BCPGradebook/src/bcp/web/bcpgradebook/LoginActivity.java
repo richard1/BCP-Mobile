@@ -19,6 +19,8 @@ import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
@@ -28,8 +30,10 @@ import android.view.Menu;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class LoginActivity extends Activity {
 	
@@ -48,10 +52,29 @@ public class LoginActivity extends Activity {
 	private View mLoginFormView;
 	private View mLoginStatusView;
 	private TextView mLoginStatusMessageView;
+	
+	// Other values.
+	private boolean wantsRemember = false;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		
+		// Check if logged in already.
+		SharedPreferences passPref = getSharedPreferences("password", MODE_PRIVATE);
+		String savedPassword = passPref.getString("password", "");
+		SharedPreferences userPref = getSharedPreferences("username", MODE_PRIVATE);
+		String savedUsername = userPref.getString("username", "");
+		if(savedPassword != null && savedPassword.length() > 0) {
+			Toast.makeText(getApplicationContext(), "Is already logged in", Toast.LENGTH_SHORT).show();
+			Intent intent = new Intent(getBaseContext(), GradeViewActivity.class);
+			intent.putExtra("username", savedUsername);
+			intent.putExtra("encryptedPassword", savedPassword);
+			startActivity(intent);
+			overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
+			finish();
+		}
+		
 
 		setContentView(R.layout.activity_login);
 
@@ -181,6 +204,15 @@ public class LoginActivity extends Activity {
 			mLoginFormView.setVisibility(show ? View.GONE : View.VISIBLE);
 		}
 	}
+	
+	public void onCheckboxClicked(View view) {
+	    // Is the view now checked?
+	    boolean checked = ((CheckBox) view).isChecked();
+	    wantsRemember = checked;
+	    if(checked) {
+	    	System.out.println("CHECK\nCHECK\nCHECK");
+	    }
+	}
 
 	/**
 	 * Represents an asynchronous login/registration task used to authenticate
@@ -206,6 +238,19 @@ public class LoginActivity extends Activity {
 			showProgress(false);
 
 			if (success) {
+				if(wantsRemember) {
+					Toast.makeText(getApplicationContext(), "Storing credentials", Toast.LENGTH_SHORT).show();
+					// Store username.
+					Editor editorUser = getSharedPreferences("username", MODE_PRIVATE).edit();
+					editorUser.putString("username", mEmail);
+					editorUser.commit();
+					
+					// Store encrypted password.
+					Editor editorPass = getSharedPreferences("password", MODE_PRIVATE).edit();
+					editorPass.putString("password", mEncryptedPassword);
+					editorPass.commit();
+				}
+				
 				InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
 				imm.hideSoftInputFromWindow(mEmailView.getWindowToken(), 0);
 				imm.hideSoftInputFromWindow(mPasswordView.getWindowToken(), 0);

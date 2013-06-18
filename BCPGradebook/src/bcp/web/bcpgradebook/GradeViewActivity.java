@@ -70,7 +70,7 @@ public class GradeViewActivity extends Activity {
 		setContentView(R.layout.activity_grade_view);
 			
 		progress = new ProgressDialog(this);
-		progress.setTitle("Loading");
+		progress.setTitle("Welcome");
 		progress.setMessage("Fetching your grades...");
 		progress.setCanceledOnTouchOutside(false);
 		progress.show();
@@ -115,7 +115,9 @@ public class GradeViewActivity extends Activity {
 		    	Toast.makeText(getApplicationContext(), "About (doesn't do anything)!", Toast.LENGTH_SHORT).show();
 		        return true;
 		    case R.id.menu_logout:
-		        Toast.makeText(getApplicationContext(), "Logout!", Toast.LENGTH_SHORT).show();
+		        Toast.makeText(getApplicationContext(), "Logging out...", Toast.LENGTH_SHORT).show();
+		        getSharedPreferences("username", MODE_PRIVATE).edit().clear().commit();
+		        getSharedPreferences("password", MODE_PRIVATE).edit().clear().commit();
 		        Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
 		        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
 		        startActivity(intent);
