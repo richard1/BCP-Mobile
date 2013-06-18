@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.app.ActionBar;
 import android.app.Activity;
 import android.content.Intent;
+import android.graphics.Color;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ArrayAdapter;
@@ -18,10 +19,12 @@ public class CourseDetailActivity extends Activity {
 	ArrayAdapter<String> adapter;
 	private ArrayList<String> listContent = new ArrayList<String>();
 
-	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		setTitleColor(Color.WHITE);
 		setTitle("A Random Course");
+		
+		
 		getActionBar().setHomeButtonEnabled(true);
 		ActionBar actionBar = getActionBar();
 		actionBar.setDisplayHomeAsUpEnabled(true);
@@ -29,8 +32,10 @@ public class CourseDetailActivity extends Activity {
 		Intent intent = this.getIntent();
 		String id = intent.getStringExtra(GradeViewActivity.COURSE_ID);
 		
-		listContent.add("yoo");
+		listContent.add("hey there");
 		listContent.add(id);
+		listContent.add("nothing here yet");
+		listContent.add("maybe we should wait til someone updates the script");
 		setContentView(R.layout.activity_course_detail);
 		
 		populateList(R.id.listView2, listContent);

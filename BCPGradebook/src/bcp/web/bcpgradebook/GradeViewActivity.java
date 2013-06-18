@@ -11,54 +11,41 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 
-import javax.net.ssl.HostnameVerifier;
-import javax.net.ssl.HttpsURLConnection;
-import javax.net.ssl.SSLSession;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.xmlpull.v1.XmlPullParserException;
-
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.app.ActionBar;
-import android.app.ActionBar.Tab;
 import android.app.Activity;
-import android.app.Fragment;
-import android.app.FragmentTransaction;
 import android.app.ProgressDialog;
-import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.WindowManager;
-import android.view.inputmethod.InputMethodManager;
-import android.webkit.WebView;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
-import android.widget.ArrayAdapter;
-import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Toast;
 
 import bcp.web.bcpgradebook.R;
+import bcp.web.bcpgradebook.lib.Grade;
+import bcp.web.bcpgradebook.lib.GradeAdapter;
 
 public class GradeViewActivity extends Activity {
 	
 	private String gradesUrl;
 	private ListView myList;
-	ArrayAdapter<String> adapter;
-	private ArrayList<String> listContent = new ArrayList<String>();
+	GradeAdapter adapter;
+	private ArrayList<Grade> listContent = new ArrayList<Grade>();
 	public static final String COURSE_ID = "bcp.web.bcpgradebook.courseid";
 	OnItemClickListener listener;
 	ProgressDialog progress;
 	public static boolean isRefreshing = false;
 
-	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		setTitleColor(Color.WHITE);
 		setTitle("My Courses");
 		
 		Intent intent = this.getIntent();
@@ -75,7 +62,7 @@ public class GradeViewActivity extends Activity {
 		progress.setCanceledOnTouchOutside(false);
 		progress.show();
 		
-		populateList(R.id.listView1, listContent);
+		//populateList(R.id.listView1, listContent);
 		listener = new OnItemClickListener() {
 			@Override
 			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -86,11 +73,30 @@ public class GradeViewActivity extends Activity {
 				overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
 			}
 		};
+		
+		/*
+		Grade grade_data[] = new Grade[]
+        {
+            new Grade(R.drawable.grade_a, "Physics C AP", "94.75%"),
+            new Grade(R.drawable.grade_bminus, "Geometry Honors", "90.72%"),
+            new Grade(R.drawable.grade_cplus, "World History AP", "104.6%"),
+            new Grade(R.drawable.grade_dplus, "English 2", "97.56%"),
+            new Grade(R.drawable.grade_bplus, "Robotics", "87.23%")
+        };
+        */
+        
+		//GradeAdapter adapter = new GradeAdapter(this, R.layout.grade_item_row, grade_data);         
+        //View header = (View)getLayoutInflater().inflate(R.layout.listview_header_row, null);
+        //myList.addHeaderView(header);
+        
+        //myList.setAdapter(adapter);
+        
+        populateList(R.id.listView1, listContent);
 	}
 	
-	public void populateList(int list, ArrayList<String> content) {
+	public void populateList(int list, ArrayList<Grade> content) {
 		myList = (ListView)findViewById(list);
-		adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, content);
+		adapter = new GradeAdapter(this, R.layout.grade_item_row, content);
 		myList.setAdapter(adapter);
 		myList.setOnItemClickListener(listener); 
 	}
@@ -205,9 +211,7 @@ public class GradeViewActivity extends Activity {
 		for(int i = 0; i < sem1.length(); i++) {
 			JSONObject row = sem1.getJSONObject(i);
 			if(!row.getString("class").equals("Homeroom")) {
-				String course = row.getString("class") + ": " + row.getString("grade") + " (" + row.getString("percentage") + ")";
-				output += course + "<br />";
-				listContent.add(course);
+				listContent.add(new Grade(getIdFromGrade(row.getString("grade")), row.getString("class"), row.getString("percentage")));
 			}
 		}
 		
@@ -216,9 +220,7 @@ public class GradeViewActivity extends Activity {
 		for(int i = 0; i < sem2.length(); i++) {
 			JSONObject row = sem2.getJSONObject(i);
 			if(!row.getString("class").equals("Homeroom")) {
-				String course = row.getString("class") + ": " + row.getString("grade") + " (" + row.getString("percentage") + ")";
-				output += course + "<br />";
-				listContent.add(course);
+				listContent.add(new Grade(getIdFromGrade(row.getString("grade")), row.getString("class"), row.getString("percentage")));
 			}
 		}
 		return output;
@@ -255,4 +257,21 @@ public class GradeViewActivity extends Activity {
             return "";
         }
     }
+	
+	public int getIdFromGrade(String grade) {
+		// Please don't judge me.
+		if(grade.equals("A+")) return R.drawable.grade_aplus;
+		else if(grade.equals("A")) return R.drawable.grade_a;
+		else if(grade.equals("A-")) return R.drawable.grade_aminus;
+		else if(grade.equals("B+")) return R.drawable.grade_bplus;
+		else if(grade.equals("B")) return R.drawable.grade_b;
+		else if(grade.equals("B-")) return R.drawable.grade_bminus;
+		else if(grade.equals("C+")) return R.drawable.grade_cplus;
+		else if(grade.equals("C")) return R.drawable.grade_c;
+		else if(grade.equals("C-")) return R.drawable.grade_cminus;
+		else if(grade.equals("D+")) return R.drawable.grade_dplus;
+		else if(grade.equals("D")) return R.drawable.grade_d;
+		else if(grade.equals("D-")) return R.drawable.grade_dminus;
+		return R.drawable.grade_f;
+	}
 }

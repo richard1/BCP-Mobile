@@ -21,6 +21,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
+import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
@@ -59,6 +60,7 @@ public class LoginActivity extends Activity {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		setTitleColor(Color.WHITE);
 		
 		// Check if logged in already.
 		SharedPreferences passPref = getSharedPreferences("password", MODE_PRIVATE);
@@ -66,7 +68,7 @@ public class LoginActivity extends Activity {
 		SharedPreferences userPref = getSharedPreferences("username", MODE_PRIVATE);
 		String savedUsername = userPref.getString("username", "");
 		if(savedPassword != null && savedPassword.length() > 0) {
-			Toast.makeText(getApplicationContext(), "Is already logged in", Toast.LENGTH_SHORT).show();
+			//Toast.makeText(getApplicationContext(), "Is already logged in", Toast.LENGTH_SHORT).show();
 			Intent intent = new Intent(getBaseContext(), GradeViewActivity.class);
 			intent.putExtra("username", savedUsername);
 			intent.putExtra("encryptedPassword", savedPassword);
