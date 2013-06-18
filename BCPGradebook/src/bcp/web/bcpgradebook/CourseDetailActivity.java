@@ -10,6 +10,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.Toast;
 
 public class CourseDetailActivity extends Activity {
 	
@@ -51,6 +52,18 @@ public class CourseDetailActivity extends Activity {
 	            finish();
 	            overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
 	            return true;
+	        case R.id.menu_about:
+		    	Toast.makeText(getApplicationContext(), "About (doesn't do anything)!", Toast.LENGTH_SHORT).show();
+		        return true;
+	        case R.id.menu_logout:
+		        Toast.makeText(getApplicationContext(), "Logout!", Toast.LENGTH_SHORT).show();
+		        Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
+		        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+		        startActivity(intent);
+		        overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
+		        return true;
+		    case R.id.menu_settings:
+		    	Toast.makeText(getApplicationContext(), "Settings (doesn't do anything)!", Toast.LENGTH_SHORT).show();
 	        default:
 	            return super.onOptionsItemSelected(item);
 	    }

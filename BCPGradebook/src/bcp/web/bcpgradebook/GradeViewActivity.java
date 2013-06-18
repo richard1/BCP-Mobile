@@ -23,7 +23,10 @@ import org.xmlpull.v1.XmlPullParserException;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.app.ActionBar;
+import android.app.ActionBar.Tab;
 import android.app.Activity;
+import android.app.Fragment;
+import android.app.FragmentTransaction;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
@@ -44,7 +47,6 @@ import bcp.web.bcpgradebook.R;
 
 public class GradeViewActivity extends Activity {
 	
-	//url
 	private String gradesUrl;
 	private ListView myList;
 	ArrayAdapter<String> adapter;
@@ -52,6 +54,7 @@ public class GradeViewActivity extends Activity {
 	public static final String COURSE_ID = "bcp.web.bcpgradebook.courseid";
 	OnItemClickListener listener;
 	ProgressDialog progress;
+	public static boolean isRefreshing = false;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -99,6 +102,32 @@ public class GradeViewActivity extends Activity {
 		return true;
 	}
 	
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+	    // Handle item selection
+	    switch (item.getItemId()) {
+		    case R.id.menu_refresh:
+		    	Toast.makeText(getApplicationContext(), "Refreshing...", Toast.LENGTH_SHORT).show();
+		    	isRefreshing = true;
+		    	refreshGrades();
+		        return true;
+		    case R.id.menu_about:
+		    	Toast.makeText(getApplicationContext(), "About (doesn't do anything)!", Toast.LENGTH_SHORT).show();
+		        return true;
+		    case R.id.menu_logout:
+		        Toast.makeText(getApplicationContext(), "Logout!", Toast.LENGTH_SHORT).show();
+		        Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
+		        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+		        startActivity(intent);
+		        overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
+		        return true;
+		    case R.id.menu_settings:
+		    	Toast.makeText(getApplicationContext(), "Settings (doesn't do anything)!", Toast.LENGTH_SHORT).show();
+		    default:
+		        return super.onOptionsItemSelected(item);
+	    }
+	}
+	
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
     }
@@ -106,9 +135,17 @@ public class GradeViewActivity extends Activity {
 	@Override
 	public void onStart() {
 		super.onStart();
+		refreshGrades();
+	}
+	
+	public void refreshGrades() {
 		new DownloadGradesTask().execute(gradesUrl);		
 		populateList(R.id.listView1, listContent);
 		adapter.notifyDataSetChanged();
+		if(isRefreshing) {
+			Toast.makeText(getApplicationContext(), "All grades refreshed!", Toast.LENGTH_SHORT).show();
+			isRefreshing = false;
+		}
 	}
 	
 	private class DownloadGradesTask extends AsyncTask<String, Void, String> {
@@ -153,10 +190,8 @@ public class GradeViewActivity extends Activity {
 			Toast.makeText(getApplicationContext(), "ERROR", Toast.LENGTH_SHORT).show();
 			switch(error) {
 				case 1: case 3: default:
-					Toast.makeText(getApplicationContext(), "Failed to retrieve your grades. The page might be down, please try again later. [" + error + "]", Toast.LENGTH_SHORT).show();
 					return "<h3>Failed to retrieve your grades.</h3> <p>The page might be down, please try again later. [" + error + "]</p>";
 				case 2:
-					Toast.makeText(getApplicationContext(), "Incorrect username or password", Toast.LENGTH_SHORT).show();
 					return "<h3>Incorrect username or password.</h3>";
 			}
 		}
