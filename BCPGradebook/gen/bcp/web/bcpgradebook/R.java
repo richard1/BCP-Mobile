@@ -18,6 +18,9 @@ public final class R {
         public static final int slide_out_to_bottom=0x7f040006;
         public static final int slide_out_to_top=0x7f040007;
     }
+    public static final class array {
+        public static final int action_list=0x7f080000;
+    }
     public static final class attr {
         /**  BELOW HERE ARE DEPRECEATED. DO NOT USE. 
          <p>May be a reference to another resource, in the form "<code>@[+][<i>package</i>:]<i>type</i>:<i>name</i></code>"
@@ -155,25 +158,25 @@ or to a theme attribute in the form "<code>?[<i>package</i>:][<i>type</i>:]<i>na
         public static final int ptrSubHeaderTextAppearance=0x7f01000b;
     }
     public static final class color {
-        public static final int aqua=0x7f080009;
-        public static final int bcpDark=0x7f080012;
-        public static final int bcpLight=0x7f080011;
-        public static final int bcpLight2=0x7f080010;
-        public static final int black=0x7f08000f;
-        public static final int blue=0x7f08000d;
-        public static final int fuchsia=0x7f080002;
-        public static final int gray=0x7f080005;
-        public static final int green=0x7f08000c;
-        public static final int lime=0x7f08000a;
-        public static final int maroon=0x7f080008;
-        public static final int navy=0x7f08000e;
-        public static final int olive=0x7f080006;
-        public static final int purple=0x7f080007;
-        public static final int red=0x7f080003;
-        public static final int silver=0x7f080004;
-        public static final int teal=0x7f08000b;
-        public static final int white=0x7f080000;
-        public static final int yellow=0x7f080001;
+        public static final int aqua=0x7f090009;
+        public static final int bcpDark=0x7f090012;
+        public static final int bcpLight=0x7f090011;
+        public static final int bcpLight2=0x7f090010;
+        public static final int black=0x7f09000f;
+        public static final int blue=0x7f09000d;
+        public static final int fuchsia=0x7f090002;
+        public static final int gray=0x7f090005;
+        public static final int green=0x7f09000c;
+        public static final int lime=0x7f09000a;
+        public static final int maroon=0x7f090008;
+        public static final int navy=0x7f09000e;
+        public static final int olive=0x7f090006;
+        public static final int purple=0x7f090007;
+        public static final int red=0x7f090003;
+        public static final int silver=0x7f090004;
+        public static final int teal=0x7f09000b;
+        public static final int white=0x7f090000;
+        public static final int yellow=0x7f090001;
     }
     public static final class dimen {
         public static final int header_footer_left_right_padding=0x7f060003;
@@ -210,10 +213,11 @@ or to a theme attribute in the form "<code>?[<i>package</i>:][<i>type</i>:]<i>na
         public static final int button1=0x7f05001b;
         public static final int disabled=0x7f050000;
         public static final int email=0x7f050011;
-        public static final int fl_inner=0x7f050024;
+        public static final int fl_inner=0x7f050025;
         public static final int flip=0x7f050008;
+        public static final int fragment_container=0x7f05001c;
         public static final int gridview=0x7f050009;
-        public static final int imgIcon=0x7f05001c;
+        public static final int imgIcon=0x7f05001d;
         public static final int listView1=0x7f05000d;
         public static final int listView2=0x7f05000c;
         public static final int login=0x7f050013;
@@ -223,31 +227,30 @@ or to a theme attribute in the form "<code>?[<i>package</i>:][<i>type</i>:]<i>na
         public static final int loginname=0x7f050017;
         public static final int loginpass=0x7f05001a;
         public static final int manualOnly=0x7f050004;
-        public static final int menu_about=0x7f050027;
+        public static final int menu_about=0x7f050028;
         public static final int menu_forgot_password=0x7f05002a;
-        public static final int menu_logout=0x7f050028;
-        public static final int menu_refresh=0x7f050029;
-        public static final int menu_settings=0x7f050026;
+        public static final int menu_logout=0x7f050029;
+        public static final int menu_settings=0x7f050027;
         public static final int password=0x7f050012;
         public static final int pullDownFromTop=0x7f050005;
         public static final int pullFromEnd=0x7f050002;
         public static final int pullFromStart=0x7f050001;
         public static final int pullUpFromBottom=0x7f050006;
-        public static final int pull_to_refresh_header=0x7f05001f;
-        public static final int pull_to_refresh_image=0x7f050021;
-        public static final int pull_to_refresh_progress=0x7f050020;
-        public static final int pull_to_refresh_sub_text=0x7f050025;
-        public static final int pull_to_refresh_text=0x7f050022;
-        public static final int pull_to_refresh_updated_at=0x7f050023;
+        public static final int pull_to_refresh_header=0x7f050020;
+        public static final int pull_to_refresh_image=0x7f050022;
+        public static final int pull_to_refresh_progress=0x7f050021;
+        public static final int pull_to_refresh_sub_text=0x7f050026;
+        public static final int pull_to_refresh_text=0x7f050023;
+        public static final int pull_to_refresh_updated_at=0x7f050024;
         public static final int remember=0x7f050014;
         public static final int rotate=0x7f050007;
         public static final int scrollview=0x7f05000b;
         public static final int sign_in_button=0x7f050015;
-        public static final int subtext=0x7f05001e;
+        public static final int subtext=0x7f05001f;
         public static final int textView1=0x7f050016;
         public static final int textView2=0x7f050018;
         public static final int textView3=0x7f050019;
-        public static final int txtTitle=0x7f05001d;
+        public static final int txtTitle=0x7f05001e;
         public static final int webview=0x7f05000a;
     }
     public static final class layout {
@@ -255,16 +258,17 @@ or to a theme attribute in the form "<code>?[<i>package</i>:][<i>type</i>:]<i>na
         public static final int activity_grade_view=0x7f030001;
         public static final int activity_login=0x7f030002;
         public static final int activity_main=0x7f030003;
-        public static final int grade_item_row=0x7f030004;
-        public static final int pull_to_refresh_header=0x7f030005;
-        public static final int pull_to_refresh_header_horizontal=0x7f030006;
-        public static final int pull_to_refresh_header_vertical=0x7f030007;
+        public static final int fragment_container=0x7f030004;
+        public static final int grade_item_row=0x7f030005;
+        public static final int pull_to_refresh_header=0x7f030006;
+        public static final int pull_to_refresh_header_horizontal=0x7f030007;
+        public static final int pull_to_refresh_header_vertical=0x7f030008;
     }
     public static final class menu {
-        public static final int activity_course_detail=0x7f0a0000;
-        public static final int activity_grade_view=0x7f0a0001;
-        public static final int activity_login=0x7f0a0002;
-        public static final int activity_main=0x7f0a0003;
+        public static final int activity_course_detail=0x7f0b0000;
+        public static final int activity_grade_view=0x7f0b0001;
+        public static final int activity_login=0x7f0b0002;
+        public static final int activity_main=0x7f0b0003;
     }
     public static final class string {
         public static final int action_sign_in_register=0x7f070015;
@@ -303,7 +307,7 @@ or to a theme attribute in the form "<code>?[<i>package</i>:][<i>type</i>:]<i>na
         public static final int username=0x7f07000a;
     }
     public static final class style {
-        public static final int ActionBar=0x7f090005;
+        public static final int ActionBar=0x7f0a0005;
         /** 
         Base application theme, dependent on API level. This theme is replaced
         by AppBaseTheme from res/values-vXX/styles.xml on newer devices.
@@ -327,14 +331,14 @@ or to a theme attribute in the form "<code>?[<i>package</i>:][<i>type</i>:]<i>na
     
  API 14 theme customizations can go here. 
          */
-        public static final int AppBaseTheme=0x7f090000;
+        public static final int AppBaseTheme=0x7f0a0000;
         /**  Application theme. 
  All customizations that are NOT specific to a particular API-level can go here. 
          */
-        public static final int AppTheme=0x7f090001;
-        public static final int BCPTheme=0x7f090003;
-        public static final int LoginFormContainer=0x7f090002;
-        public static final int WindowTitleBackground=0x7f090004;
+        public static final int AppTheme=0x7f0a0001;
+        public static final int BCPTheme=0x7f0a0003;
+        public static final int LoginFormContainer=0x7f0a0002;
+        public static final int WindowTitleBackground=0x7f0a0004;
     }
     public static final class styleable {
         /** Attributes that can be used with a PullToRefresh.

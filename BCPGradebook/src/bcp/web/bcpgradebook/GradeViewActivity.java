@@ -9,7 +9,10 @@ import java.io.StringWriter;
 import java.io.Writer;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -19,20 +22,32 @@ import com.handmark.pulltorefresh.library.PullToRefreshBase;
 import com.handmark.pulltorefresh.library.PullToRefreshBase.OnRefreshListener;
 import com.handmark.pulltorefresh.library.PullToRefreshListView;
 
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.app.ActionBar;
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.Fragment;
+import android.app.FragmentTransaction;
 import android.app.ListActivity;
 import android.app.ProgressDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
+import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
 import android.widget.ListView;
+import android.widget.Spinner;
+import android.widget.SpinnerAdapter;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import bcp.web.bcpgradebook.R;
@@ -42,41 +57,41 @@ import bcp.web.bcpgradebook.lib.GradeAdapter;
 public class GradeViewActivity extends ListActivity {
 	
 	private String gradesUrl;
-	private PullToRefreshListView myList;
+	private PullToRefreshListView listView;
 	GradeAdapter adapter;
-	private ArrayList<Grade> listContent = new ArrayList<Grade>();
-	private ArrayList<Grade> tempContent = new ArrayList<Grade>();
+	private ArrayList<Grade> mainList = new ArrayList<Grade>();
+	private ArrayList<Grade> semesterList1 = new ArrayList<Grade>();
+	private ArrayList<Grade> semesterList2 = new ArrayList<Grade>();
+	public final int SEMESTER_ONE_POSITION = 0;
+	public final int SEMESTER_TWO_POSITION = 1;
 	public static final String COURSE_ID = "bcp.web.bcpgradebook.courseid";
 	OnItemClickListener listener;
 	ProgressDialog progress;
 	public boolean isRefreshing = false;
 	PullToRefreshListView pullToRefreshView;
+	private boolean showSemester1 = true;
 
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_grade_view);
 		
-		//listContent.add(new Grade(R.drawable.grade_bplus, "ehhh", "hello"));
-		//listContent.add(new Grade(R.drawable.grade_dplus, "merr", "ewqe"));
-		
+		setTitle("");
+		getActionBar().setDisplayShowTitleEnabled(false);
+				
 		pullToRefreshView = (PullToRefreshListView) findViewById(R.id.listView1);
 		pullToRefreshView.setOnRefreshListener(new OnRefreshListener<ListView>() {
 			@Override
 		    public void onRefresh(PullToRefreshBase<ListView> refreshView) {
-				Toast.makeText(getApplicationContext(), "on refresh", Toast.LENGTH_SHORT).show();
 				new DownloadGradesTask().execute(gradesUrl);
 		    }
 		});
 		
-		myList = (PullToRefreshListView)findViewById(R.id.listView1);
-		adapter = new GradeAdapter(this, R.layout.grade_item_row, listContent);
-		myList.setAdapter(adapter);
+		listView = (PullToRefreshListView)findViewById(R.id.listView1);
+		adapter = new GradeAdapter(this, R.layout.grade_item_row, mainList);
+		listView.setAdapter(adapter);
 		setListAdapter(adapter);
-		myList.setOnItemClickListener(listener);
-		
-		setTitleColor(Color.WHITE); // actually doesn't work
-		setTitle("My Courses");
-		
+		listView.setOnItemClickListener(listener);
+				
 		Intent intent = this.getIntent();
 		String username = intent.getStringExtra("username");
 		String encryptedPassword = intent.getStringExtra("encryptedPassword");
@@ -93,19 +108,59 @@ public class GradeViewActivity extends ListActivity {
 		listener = new OnItemClickListener() {
 			@Override
 			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+				// test
+				String title = ((Grade)adapter.getItem(position - 1)).title; // subtracting 1 to get correct index			    
 				Toast.makeText(getApplicationContext(), "Item #: " + position, Toast.LENGTH_SHORT).show();
 				Intent intent = new Intent(getBaseContext(), CourseDetailActivity.class);
 				intent.putExtra(COURSE_ID, "Item #: " + position);
+				intent.putExtra("title", title);
 				startActivity(intent);
 				overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
 			}
 		};
+		
+		ActionBar actionBar = getActionBar();
+		actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_LIST);
+		SpinnerAdapter mSpinnerAdapter = ArrayAdapter.createFromResource(this, R.array.action_list,
+		          android.R.layout.simple_spinner_dropdown_item);
+		ActionBar.OnNavigationListener mOnNavigationListener = new ActionBar.OnNavigationListener() {
+		  public boolean onNavigationItemSelected(int itemPosition, long itemId) {
+	            String[] rooms = getResources().getStringArray(R.array.action_list);
+	            String semesterSelection = rooms[itemPosition];
+	            boolean oldSelection = showSemester1;
+	            showSemester1 = semesterSelection.equals("Semester 1") ? true : false;
+	            if(oldSelection != showSemester1) {
+	            	mainList.clear();
+	            	if(showSemester1) {
+	            		mainList.addAll(semesterList1);
+	            	}
+	            	else {
+	            		mainList.addAll(semesterList2);
+	            	}
+	    			listView = (PullToRefreshListView)findViewById(R.id.listView1);
+	    			adapter = new GradeAdapter(GradeViewActivity.this, R.layout.grade_item_row, mainList);
+	    			listView.setAdapter(adapter);
+	    			setListAdapter(adapter);
+	    			listView.setOnItemClickListener(listener);
+	            }
+	            return false;
+	        }
+		};
+		actionBar.setListNavigationCallbacks(mSpinnerAdapter, mOnNavigationListener);
+		
+		Calendar c = Calendar.getInstance(); 
+		int month = c.get(Calendar.MONTH) + 1; // January -> 0, December -> 11 ... this corrects it		
+		if(month < 8) { // if in between January 1 and July 31, set default to Semester 2
+			actionBar.setSelectedNavigationItem(SEMESTER_TWO_POSITION);
+			showSemester1 = false;
+		}
+		
+		new DownloadGradesTask().execute(gradesUrl);
 	}
 	
 	@Override
 	public void onStart() {
 		super.onStart();
-		new DownloadGradesTask().execute(gradesUrl);
 	}
 
 	@Override
@@ -119,11 +174,25 @@ public class GradeViewActivity extends ListActivity {
 	public boolean onOptionsItemSelected(MenuItem item) {
 	    // Handle item selection
 	    switch (item.getItemId()) {
-		    case R.id.menu_refresh:
-		    	Toast.makeText(getApplicationContext(), "Deprecated :(", Toast.LENGTH_SHORT).show();
-		        return true;
-		    case R.id.menu_about:
-		    	Toast.makeText(getApplicationContext(), "About (doesn't do anything)!", Toast.LENGTH_SHORT).show();
+		    case R.id.menu_about:	    	
+		    	String about = "By Richard Lin '13\n\nWith help from Jonathan Chang '13, Bryce Pauken '14\n\n" +
+		    			"Based on Bryce's BCP Mobile app for iOS, this app was created to provide Android-loving " +
+		    			"Bellarmine students a convenient way to check their grades, view announcements, and more.\n\n" +
+		    			"If you're enjoying this app, please share this with your friends!";
+		        AlertDialog.Builder builder = new AlertDialog.Builder(GradeViewActivity.this);
+		        builder.setTitle("About");
+		        builder.setMessage(about);
+		        builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+		            public void onClick(DialogInterface dialog, int id) {
+		            }
+		        });
+		        builder.setNegativeButton("View on GitHub", new DialogInterface.OnClickListener() {
+		            public void onClick(DialogInterface dialog, int id) {
+		            	Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/richard1/"));
+		            	startActivity(browserIntent);
+		            }
+		        });
+		        builder.show();
 		        return true;
 		    case R.id.menu_logout:
 		        getSharedPreferences("username", MODE_PRIVATE).edit().clear().commit();
@@ -164,14 +233,13 @@ public class GradeViewActivity extends ListActivity {
 		
 		@Override
 		protected void onPostExecute(String result) {
-			myList = (PullToRefreshListView) findViewById(R.id.listView1);
-			listContent.clear();
-			listContent.addAll(newData);
-			myList = (PullToRefreshListView)findViewById(R.id.listView1);
-			adapter = new GradeAdapter(GradeViewActivity.this, R.layout.grade_item_row, listContent);
-			myList.setAdapter(adapter);
+			mainList.clear();
+			mainList.addAll(newData);
+			listView = (PullToRefreshListView)findViewById(R.id.listView1);
+			adapter = new GradeAdapter(GradeViewActivity.this, R.layout.grade_item_row, mainList);
+			listView.setAdapter(adapter);
 			setListAdapter(adapter);
-			myList.setOnItemClickListener(listener);
+			listView.setOnItemClickListener(listener);
 			Toast.makeText(getApplicationContext(), "Up to date.", Toast.LENGTH_SHORT).show();
 			progress.dismiss();
 			((PullToRefreshListView) findViewById(R.id.listView1)).onRefreshComplete();
@@ -189,7 +257,8 @@ public class GradeViewActivity extends ListActivity {
 			if(stream != null)
 				stream.close();
 		}
-		tempContent.clear();
+		semesterList1.clear();
+		semesterList2.clear();
 		JSONObject result = new JSONObject(rawJson);
 		int error = result.getInt("error");
 		if(error != 0) {
@@ -201,7 +270,7 @@ public class GradeViewActivity extends ListActivity {
 		for(int i = 0; i < sem1.length(); i++) {
 			JSONObject row = sem1.getJSONObject(i);
 			if(!row.getString("class").equals("Homeroom")) {
-				tempContent.add(new Grade(getIdFromGrade(row.getString("grade")), row.getString("class"), row.getString("percentage")));
+				semesterList1.add(new Grade(getIdFromGrade(row.getString("grade")), row.getString("class"), row.getString("percentage")));
 			}
 		}
 		
@@ -209,10 +278,13 @@ public class GradeViewActivity extends ListActivity {
 		for(int i = 0; i < sem2.length(); i++) {
 			JSONObject row = sem2.getJSONObject(i);
 			if(!row.getString("class").equals("Homeroom")) {
-				tempContent.add(new Grade(getIdFromGrade(row.getString("grade")), row.getString("class"), row.getString("percentage")));
+				semesterList2.add(new Grade(getIdFromGrade(row.getString("grade")), row.getString("class"), row.getString("percentage")));
 			}
 		}
-		return tempContent;
+		if(showSemester1) {
+			return semesterList1;
+		}
+		return semesterList2;
 	}
 	
 	private InputStream downloadUrl(String urlString) throws IOException {

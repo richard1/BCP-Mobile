@@ -2,9 +2,12 @@ package bcp.web.bcpgradebook;
 
 import java.util.ArrayList;
 
+import android.net.Uri;
 import android.os.Bundle;
 import android.app.ActionBar;
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
 import android.view.Menu;
@@ -21,9 +24,7 @@ public class CourseDetailActivity extends Activity {
 
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		setTitleColor(Color.WHITE);
-		setTitle("A Random Course");
-		
+		setTitleColor(Color.WHITE);		
 		
 		getActionBar().setHomeButtonEnabled(true);
 		ActionBar actionBar = getActionBar();
@@ -31,11 +32,24 @@ public class CourseDetailActivity extends Activity {
 		
 		Intent intent = this.getIntent();
 		String id = intent.getStringExtra(GradeViewActivity.COURSE_ID);
+		String title = intent.getStringExtra("title");
+		if(title != null) {
+			setTitle(title);
+		} else {
+			setTitle("Unknown Course");
+		}
 		
-		listContent.add("hey there");
+		listContent.add("Unit 1 Test");
+		listContent.add("Workbook pg. 23-25");
+		listContent.add("Quarter 1 Participation");
+		listContent.add("Unit 2 Test");
+		listContent.add("Homework 2/5/13");
+		listContent.add("Ch. 5 Quiz");
+		listContent.add("Extra Credit");
+		listContent.add("SOOO still waiting on the script");
+		listContent.add("these are placeholders");
+
 		listContent.add(id);
-		listContent.add("nothing here yet");
-		listContent.add("maybe we should wait til someone updates the script");
 		setContentView(R.layout.activity_course_detail);
 		
 		populateList(R.id.listView2, listContent);
@@ -58,7 +72,24 @@ public class CourseDetailActivity extends Activity {
 	            overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
 	            return true;
 	        case R.id.menu_about:
-		    	Toast.makeText(getApplicationContext(), "About (doesn't do anything)!", Toast.LENGTH_SHORT).show();
+	        	String about = "By Richard Lin '13\n\nWith help from Jonathan Chang '13, Bryce Pauken '14\n\n" +
+		    			"Based on Bryce's BCP Mobile app for iOS, this app was created to provide Android-loving " +
+		    			"Bellarmine students a convenient way to check their grades, view announcements, and more.\n\n" +
+		    			"If you're enjoying this app, please share this with your friends!";
+		        AlertDialog.Builder builder = new AlertDialog.Builder(CourseDetailActivity.this);
+		        builder.setTitle("About");
+		        builder.setMessage(about);
+		        builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+		            public void onClick(DialogInterface dialog, int id) {
+		            }
+		        });
+		        builder.setNegativeButton("View on GitHub", new DialogInterface.OnClickListener() {
+		            public void onClick(DialogInterface dialog, int id) {
+		            	Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/richard1/"));
+		            	startActivity(browserIntent);
+		            }
+		        });
+		        builder.show();
 		        return true;
 	        case R.id.menu_logout:
 		        getSharedPreferences("username", MODE_PRIVATE).edit().clear().commit();

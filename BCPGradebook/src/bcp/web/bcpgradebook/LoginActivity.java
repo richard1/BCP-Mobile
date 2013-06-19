@@ -229,8 +229,6 @@ public class LoginActivity extends Activity {
 				e.printStackTrace();
 				return false;
 			}
-
-
 			// TODO: register the new account here.
 		}
 
@@ -241,7 +239,6 @@ public class LoginActivity extends Activity {
 
 			if (success) {
 				if(wantsRemember) {
-					Toast.makeText(getApplicationContext(), "Storing credentials", Toast.LENGTH_SHORT).show();
 					// Store username.
 					Editor editorUser = getSharedPreferences("username", MODE_PRIVATE).edit();
 					editorUser.putString("username", mEmail);
