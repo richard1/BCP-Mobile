@@ -14,9 +14,15 @@ import java.util.ArrayList;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import com.handmark.pulltorefresh.library.PullToRefreshBase;
+import com.handmark.pulltorefresh.library.PullToRefreshBase.OnRefreshListener;
+import com.handmark.pulltorefresh.library.PullToRefreshListView;
+
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.app.Activity;
+import android.app.ListActivity;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.graphics.Color;
@@ -25,6 +31,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
+import android.widget.BaseAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
 
@@ -32,20 +39,42 @@ import bcp.web.bcpgradebook.R;
 import bcp.web.bcpgradebook.lib.Grade;
 import bcp.web.bcpgradebook.lib.GradeAdapter;
 
-public class GradeViewActivity extends Activity {
+public class GradeViewActivity extends ListActivity {
 	
 	private String gradesUrl;
-	private ListView myList;
+	private PullToRefreshListView myList;
 	GradeAdapter adapter;
 	private ArrayList<Grade> listContent = new ArrayList<Grade>();
+	private ArrayList<Grade> tempContent = new ArrayList<Grade>();
 	public static final String COURSE_ID = "bcp.web.bcpgradebook.courseid";
 	OnItemClickListener listener;
 	ProgressDialog progress;
-	public static boolean isRefreshing = false;
+	public boolean isRefreshing = false;
+	PullToRefreshListView pullToRefreshView;
 
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		setTitleColor(Color.WHITE);
+		setContentView(R.layout.activity_grade_view);
+		
+		//listContent.add(new Grade(R.drawable.grade_bplus, "ehhh", "hello"));
+		//listContent.add(new Grade(R.drawable.grade_dplus, "merr", "ewqe"));
+		
+		pullToRefreshView = (PullToRefreshListView) findViewById(R.id.listView1);
+		pullToRefreshView.setOnRefreshListener(new OnRefreshListener<ListView>() {
+			@Override
+		    public void onRefresh(PullToRefreshBase<ListView> refreshView) {
+				Toast.makeText(getApplicationContext(), "on refresh", Toast.LENGTH_SHORT).show();
+				new DownloadGradesTask().execute(gradesUrl);
+		    }
+		});
+		
+		myList = (PullToRefreshListView)findViewById(R.id.listView1);
+		adapter = new GradeAdapter(this, R.layout.grade_item_row, listContent);
+		myList.setAdapter(adapter);
+		setListAdapter(adapter);
+		myList.setOnItemClickListener(listener);
+		
+		setTitleColor(Color.WHITE); // actually doesn't work
 		setTitle("My Courses");
 		
 		Intent intent = this.getIntent();
@@ -54,7 +83,6 @@ public class GradeViewActivity extends Activity {
 		System.out.println("user: " + username + ", pass: " + encryptedPassword);
 		
 		gradesUrl = "http://didjem.com/bell_api/grades.php?username=" + username + "&password=" + encryptedPassword;
-		setContentView(R.layout.activity_grade_view);
 			
 		progress = new ProgressDialog(this);
 		progress.setTitle("Welcome");
@@ -62,7 +90,6 @@ public class GradeViewActivity extends Activity {
 		progress.setCanceledOnTouchOutside(false);
 		progress.show();
 		
-		//populateList(R.id.listView1, listContent);
 		listener = new OnItemClickListener() {
 			@Override
 			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -73,32 +100,12 @@ public class GradeViewActivity extends Activity {
 				overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
 			}
 		};
-		
-		/*
-		Grade grade_data[] = new Grade[]
-        {
-            new Grade(R.drawable.grade_a, "Physics C AP", "94.75%"),
-            new Grade(R.drawable.grade_bminus, "Geometry Honors", "90.72%"),
-            new Grade(R.drawable.grade_cplus, "World History AP", "104.6%"),
-            new Grade(R.drawable.grade_dplus, "English 2", "97.56%"),
-            new Grade(R.drawable.grade_bplus, "Robotics", "87.23%")
-        };
-        */
-        
-		//GradeAdapter adapter = new GradeAdapter(this, R.layout.grade_item_row, grade_data);         
-        //View header = (View)getLayoutInflater().inflate(R.layout.listview_header_row, null);
-        //myList.addHeaderView(header);
-        
-        //myList.setAdapter(adapter);
-        
-        populateList(R.id.listView1, listContent);
 	}
 	
-	public void populateList(int list, ArrayList<Grade> content) {
-		myList = (ListView)findViewById(list);
-		adapter = new GradeAdapter(this, R.layout.grade_item_row, content);
-		myList.setAdapter(adapter);
-		myList.setOnItemClickListener(listener); 
+	@Override
+	public void onStart() {
+		super.onStart();
+		new DownloadGradesTask().execute(gradesUrl);
 	}
 
 	@Override
@@ -113,15 +120,12 @@ public class GradeViewActivity extends Activity {
 	    // Handle item selection
 	    switch (item.getItemId()) {
 		    case R.id.menu_refresh:
-		    	Toast.makeText(getApplicationContext(), "Refreshing...", Toast.LENGTH_SHORT).show();
-		    	isRefreshing = true;
-		    	refreshGrades();
+		    	Toast.makeText(getApplicationContext(), "Deprecated :(", Toast.LENGTH_SHORT).show();
 		        return true;
 		    case R.id.menu_about:
 		    	Toast.makeText(getApplicationContext(), "About (doesn't do anything)!", Toast.LENGTH_SHORT).show();
 		        return true;
 		    case R.id.menu_logout:
-		        Toast.makeText(getApplicationContext(), "Logging out...", Toast.LENGTH_SHORT).show();
 		        getSharedPreferences("username", MODE_PRIVATE).edit().clear().commit();
 		        getSharedPreferences("password", MODE_PRIVATE).edit().clear().commit();
 		        Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
@@ -140,27 +144,13 @@ public class GradeViewActivity extends Activity {
         overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
     }
 	
-	@Override
-	public void onStart() {
-		super.onStart();
-		refreshGrades();
-	}
-	
-	public void refreshGrades() {
-		new DownloadGradesTask().execute(gradesUrl);		
-		populateList(R.id.listView1, listContent);
-		adapter.notifyDataSetChanged();
-		if(isRefreshing) {
-			Toast.makeText(getApplicationContext(), "All grades refreshed!", Toast.LENGTH_SHORT).show();
-			isRefreshing = false;
-		}
-	}
-	
 	private class DownloadGradesTask extends AsyncTask<String, Void, String> {
+		ArrayList<Grade> newData;
 		@Override
 		protected String doInBackground(String... urls) {
 			try {
-				return loadGradesFromNetwork(urls[0]);
+				newData = loadGradesFromNetwork(urls[0]);
+				return "Success";
 			} catch(IOException e) {
 				e.printStackTrace();
 				return getResources().getString(R.string.connection_error);
@@ -174,14 +164,22 @@ public class GradeViewActivity extends Activity {
 		
 		@Override
 		protected void onPostExecute(String result) {
-			adapter.notifyDataSetChanged();
-			setContentView(R.layout.activity_grade_view);			
-			populateList(R.id.listView1, listContent);
+			myList = (PullToRefreshListView) findViewById(R.id.listView1);
+			listContent.clear();
+			listContent.addAll(newData);
+			myList = (PullToRefreshListView)findViewById(R.id.listView1);
+			adapter = new GradeAdapter(GradeViewActivity.this, R.layout.grade_item_row, listContent);
+			myList.setAdapter(adapter);
+			setListAdapter(adapter);
+			myList.setOnItemClickListener(listener);
+			Toast.makeText(getApplicationContext(), "Up to date.", Toast.LENGTH_SHORT).show();
 			progress.dismiss();
+			((PullToRefreshListView) findViewById(R.id.listView1)).onRefreshComplete();
+            super.onPostExecute(result);
 		}
 	}
 	
-	private String loadGradesFromNetwork(String urlString) throws IOException, JSONException {
+	private ArrayList<Grade> loadGradesFromNetwork(String urlString) throws IOException, JSONException {
 		InputStream stream = null;
 		String rawJson = "";
 		try {
@@ -191,39 +189,30 @@ public class GradeViewActivity extends Activity {
 			if(stream != null)
 				stream.close();
 		}
-		System.out.println(rawJson);
+		tempContent.clear();
 		JSONObject result = new JSONObject(rawJson);
 		int error = result.getInt("error");
 		if(error != 0) {
 			Toast.makeText(getApplicationContext(), "ERROR", Toast.LENGTH_SHORT).show();
-			switch(error) {
-				case 1: case 3: default:
-					return "<h3>Failed to retrieve your grades.</h3> <p>The page might be down, please try again later. [" + error + "]</p>";
-				case 2:
-					return "<h3>Incorrect username or password.</h3>";
-			}
+			return null;
 		}
-		listContent.clear();
-		String output = "";
 		JSONObject data = result.getJSONObject("data");
 		JSONArray sem1 = data.getJSONArray("semester1");
-		output += "<h2>Semester 1</h2>";
 		for(int i = 0; i < sem1.length(); i++) {
 			JSONObject row = sem1.getJSONObject(i);
 			if(!row.getString("class").equals("Homeroom")) {
-				listContent.add(new Grade(getIdFromGrade(row.getString("grade")), row.getString("class"), row.getString("percentage")));
+				tempContent.add(new Grade(getIdFromGrade(row.getString("grade")), row.getString("class"), row.getString("percentage")));
 			}
 		}
 		
-		output += "<br /><h2>Semester 2</h2>";
 		JSONArray sem2 = data.getJSONArray("semester2");
 		for(int i = 0; i < sem2.length(); i++) {
 			JSONObject row = sem2.getJSONObject(i);
 			if(!row.getString("class").equals("Homeroom")) {
-				listContent.add(new Grade(getIdFromGrade(row.getString("grade")), row.getString("class"), row.getString("percentage")));
+				tempContent.add(new Grade(getIdFromGrade(row.getString("grade")), row.getString("class"), row.getString("percentage")));
 			}
 		}
-		return output;
+		return tempContent;
 	}
 	
 	private InputStream downloadUrl(String urlString) throws IOException {
@@ -233,7 +222,6 @@ public class GradeViewActivity extends Activity {
 	    conn.setConnectTimeout(15000 /* milliseconds */);
 	    conn.setRequestMethod("GET");
 	    conn.setDoInput(true);
-	    // Starts the query
 	    conn.connect();
 	    return conn.getInputStream();
 	}

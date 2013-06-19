@@ -11,6 +11,7 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class GradeAdapter extends ArrayAdapter<Grade>{
 
@@ -58,6 +59,11 @@ public class GradeAdapter extends ArrayAdapter<Grade>{
         holder.imgIcon.setImageResource(grade.icon);
         
         return row;
+    }
+    
+    @Override
+    public int getCount() {
+        return data.length;
     }
     
     static class GradeHolder {

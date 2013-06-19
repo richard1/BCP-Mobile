@@ -61,7 +61,6 @@ public class CourseDetailActivity extends Activity {
 		    	Toast.makeText(getApplicationContext(), "About (doesn't do anything)!", Toast.LENGTH_SHORT).show();
 		        return true;
 	        case R.id.menu_logout:
-	        	Toast.makeText(getApplicationContext(), "Logging out...", Toast.LENGTH_SHORT).show();
 		        getSharedPreferences("username", MODE_PRIVATE).edit().clear().commit();
 		        getSharedPreferences("password", MODE_PRIVATE).edit().clear().commit();
 		        Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
