@@ -5,26 +5,43 @@ import java.util.ArrayList;
 import android.net.Uri;
 import android.os.Bundle;
 import android.app.ActionBar;
-import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.ListActivity;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.graphics.Color;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
+import android.widget.AdapterView.OnItemClickListener;
 
-public class CourseDetailActivity extends Activity {
+public class CourseDetailActivity extends ListActivity {
 	
 	private ListView myList;
 	ArrayAdapter<String> adapter;
 	private ArrayList<String> listContent = new ArrayList<String>();
+	OnItemClickListener listener = new OnItemClickListener() {
+		@Override
+		public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+			String title = adapter.getItem(position);
+			String detail = "Score: 14 / 15\nPercentage: 93.33%\nGrade: A\n\nCategory: Placeholder\nDue Date: Oct 23";
+	        AlertDialog.Builder builder = new AlertDialog.Builder(CourseDetailActivity.this);
+	        builder.setTitle(title);
+	        builder.setMessage(detail);
+	        builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+	            public void onClick(DialogInterface dialog, int id) {
+	            }
+	        });
+	        builder.show();
+		}
+	};
 
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		setTitleColor(Color.WHITE);		
+		setContentView(R.layout.activity_course_detail);
 		
 		getActionBar().setHomeButtonEnabled(true);
 		ActionBar actionBar = getActionBar();
@@ -48,11 +65,14 @@ public class CourseDetailActivity extends Activity {
 		listContent.add("Extra Credit");
 		listContent.add("SOOO still waiting on the script");
 		listContent.add("these are placeholders");
-
 		listContent.add(id);
-		setContentView(R.layout.activity_course_detail);
 		
-		populateList(R.id.listView2, listContent);
+		adapter = new ArrayAdapter<String>(this, /*R.id.course_item_row*/android.R.layout.simple_list_item_1, listContent);
+		setListAdapter(adapter);
+		
+		getListView().setOnItemClickListener(listener);
+		
+		//populateList(R.id.listView2, listContent);
 	}
 	
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {

@@ -14,16 +14,15 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MainActivity" >
+    tools:context=".MainActivity"
+    android:background="@color/bcpDark" >
 
     <com.handmark.pulltorefresh.library.PullToRefreshListView
-    android:id="@+id/listView1"
-    android:layout_height="fill_parent"
-    android:layout_width="fill_parent" />
-    
-    <LinearLayout
-    android:id="@+id/alternate_view_group"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent" />
+        xmlns:ptr="http://schemas.android.com/apk/res-auto"
+	    android:id="@+id/listView1"
+	    android:layout_height="fill_parent"
+	    android:layout_width="fill_parent"
+	    ptr:ptrHeaderBackground="@color/bcpDark"
+	    ptr:ptrHeaderTextColor="#FFFFFF" />
 
 </RelativeLayout>

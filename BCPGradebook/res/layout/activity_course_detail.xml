@@ -2,10 +2,11 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".CourseDetailActivity" >
+    tools:context=".CourseDetailActivity" 
+    android:background="@color/bcpDark" >
 
     <ListView 
-        android:id="@+id/listView2" 
+        android:id="@android:id/list"
         android:layout_height="fill_parent"
 		android:layout_width="fill_parent" />
 
