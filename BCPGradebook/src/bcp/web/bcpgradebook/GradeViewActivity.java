@@ -9,52 +9,47 @@ import java.io.StringWriter;
 import java.io.Writer;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Date;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.app.ActionBar;
+import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.ProgressDialog;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.Uri;
+import android.os.AsyncTask;
+import android.os.Bundle;
+import android.view.Gravity;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewGroup.LayoutParams;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
+import android.widget.SpinnerAdapter;
+import android.widget.Toast;
+import bcp.web.bcpgradebook.lib.Grade;
+import bcp.web.bcpgradebook.lib.GradeAdapter;
+
 import com.handmark.pulltorefresh.library.PullToRefreshBase;
 import com.handmark.pulltorefresh.library.PullToRefreshBase.OnRefreshListener;
 import com.handmark.pulltorefresh.library.PullToRefreshListView;
 
-import android.net.Uri;
-import android.os.AsyncTask;
-import android.os.Bundle;
-import android.app.ActionBar;
-import android.app.Activity;
-import android.app.AlertDialog;
-import android.app.Fragment;
-import android.app.FragmentTransaction;
-import android.app.ListActivity;
-import android.app.ProgressDialog;
-import android.content.DialogInterface;
-import android.content.Intent;
-import android.graphics.Color;
-import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.AdapterView.OnItemClickListener;
-import android.widget.ArrayAdapter;
-import android.widget.BaseAdapter;
-import android.widget.ListView;
-import android.widget.Spinner;
-import android.widget.SpinnerAdapter;
-import android.widget.TextView;
-import android.widget.Toast;
+import de.keyboardsurfer.android.widget.crouton.Configuration;
+import de.keyboardsurfer.android.widget.crouton.Crouton;
+import de.keyboardsurfer.android.widget.crouton.Style;
 
-import bcp.web.bcpgradebook.R;
-import bcp.web.bcpgradebook.lib.Grade;
-import bcp.web.bcpgradebook.lib.GradeAdapter;
-
-public class GradeViewActivity extends ListActivity {
+public class GradeViewActivity extends Activity {
 	
 	private String gradesUrl;
 	private PullToRefreshListView listView;
@@ -65,6 +60,7 @@ public class GradeViewActivity extends ListActivity {
 	public final int SEMESTER_ONE_POSITION = 0;
 	public final int SEMESTER_TWO_POSITION = 1;
 	public static final String COURSE_ID = "bcp.web.bcpgradebook.courseid";
+	static HttpURLConnection conn;
 	OnItemClickListener listener;
 	ProgressDialog progress;
 	public boolean isRefreshing = false;
@@ -75,9 +71,11 @@ public class GradeViewActivity extends ListActivity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_grade_view);
 		
+		Crouton.cancelAllCroutons();
+		
 		setTitle("");
 		getActionBar().setDisplayShowTitleEnabled(false);
-				
+			
 		pullToRefreshView = (PullToRefreshListView) findViewById(R.id.listView1);
 		pullToRefreshView.setOnRefreshListener(new OnRefreshListener<ListView>() {
 			@Override
@@ -89,16 +87,8 @@ public class GradeViewActivity extends ListActivity {
 		listView = (PullToRefreshListView)findViewById(R.id.listView1);
 		adapter = new GradeAdapter(this, R.layout.grade_item_row, mainList);
 		listView.setAdapter(adapter);
-		setListAdapter(adapter);
 		listView.setOnItemClickListener(listener);
-				
-		Intent intent = this.getIntent();
-		String username = intent.getStringExtra("username");
-		String encryptedPassword = intent.getStringExtra("encryptedPassword");
-		System.out.println("user: " + username + ", pass: " + encryptedPassword);
 		
-		gradesUrl = "http://didjem.com/bell_api/grades.php?username=" + username + "&password=" + encryptedPassword;
-			
 		progress = new ProgressDialog(this);
 		progress.setTitle("Welcome");
 		progress.setMessage("Fetching your grades...");
@@ -140,7 +130,6 @@ public class GradeViewActivity extends ListActivity {
 	    			listView = (PullToRefreshListView)findViewById(R.id.listView1);
 	    			adapter = new GradeAdapter(GradeViewActivity.this, R.layout.grade_item_row, mainList);
 	    			listView.setAdapter(adapter);
-	    			setListAdapter(adapter);
 	    			listView.setOnItemClickListener(listener);
 	            }
 	            return false;
@@ -155,6 +144,18 @@ public class GradeViewActivity extends ListActivity {
 			showSemester1 = false;
 		}
 		
+		Intent intent = this.getIntent();
+		String username = intent.getStringExtra("username");
+		String encryptedPassword = intent.getStringExtra("encryptedPassword");
+		
+		gradesUrl = "http://didjem.com/bell_api/grades.php?username=" + username + "&password=" + encryptedPassword;
+		
+		if(!isOnline()) {
+			progress.dismiss();
+		} else {
+			//Crouton.makeText(GradeViewActivity.this, "CONNECTED", Style.CONFIRM).setConfiguration(CONFIGURATION_3_SEC).show();
+			displayCrouton("CONNECTED", 3000, Style.CONFIRM);
+		}
 		new DownloadGradesTask().execute(gradesUrl);
 	}
 	
@@ -162,6 +163,11 @@ public class GradeViewActivity extends ListActivity {
 	public void onStart() {
 		super.onStart();
 	}
+	
+	protected void onDestroy() {
+	    Crouton.cancelAllCroutons();
+	    super.onDestroy();
+	 }
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
@@ -213,11 +219,19 @@ public class GradeViewActivity extends ListActivity {
         overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
     }
 	
+	public boolean isOnline() {
+	    ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+	    return cm.getActiveNetworkInfo() != null && cm.getActiveNetworkInfo().isConnectedOrConnecting();
+	}
+	
 	private class DownloadGradesTask extends AsyncTask<String, Void, String> {
-		ArrayList<Grade> newData;
+		ArrayList<Grade> newData = new ArrayList<Grade>();
 		@Override
 		protected String doInBackground(String... urls) {
 			try {
+				if(!isOnline()) {
+					return "No connection";
+				}
 				newData = loadGradesFromNetwork(urls[0]);
 				return "Success";
 			} catch(IOException e) {
@@ -227,20 +241,25 @@ public class GradeViewActivity extends ListActivity {
 				e.printStackTrace();
 				return getResources().getString(R.string.json_error) + e.toString();
 			} catch(Exception e) {
+				System.out.println("ATTENTION\nERROR\nHEREITIS\n"+e.toString());
 				return "Unknown Exception!: " + e.toString();
 			}
 		}
 		
 		@Override
 		protected void onPostExecute(String result) {
-			mainList.clear();
-			mainList.addAll(newData);
-			listView = (PullToRefreshListView)findViewById(R.id.listView1);
-			adapter = new GradeAdapter(GradeViewActivity.this, R.layout.grade_item_row, mainList);
-			listView.setAdapter(adapter);
-			setListAdapter(adapter);
-			listView.setOnItemClickListener(listener);
-			Toast.makeText(getApplicationContext(), "Up to date.", Toast.LENGTH_SHORT).show();
+			
+			if(!isOnline()) {
+				displayCrouton("NO INTERNET CONNECTION", 3000, Style.ALERT);
+			} else {
+				mainList.clear();
+				mainList.addAll(newData);
+				listView = (PullToRefreshListView)findViewById(R.id.listView1);
+				adapter = new GradeAdapter(GradeViewActivity.this, R.layout.grade_item_row, mainList);
+				listView.setAdapter(adapter);
+				listView.setOnItemClickListener(listener);
+				displayCrouton("UPDATED", 1000, Style.INFO);
+			}
 			progress.dismiss();
 			((PullToRefreshListView) findViewById(R.id.listView1)).onRefreshComplete();
             super.onPostExecute(result);
@@ -262,7 +281,8 @@ public class GradeViewActivity extends ListActivity {
 		JSONObject result = new JSONObject(rawJson);
 		int error = result.getInt("error");
 		if(error != 0) {
-			Toast.makeText(getApplicationContext(), "ERROR", Toast.LENGTH_SHORT).show();
+			//Crouton.makeText(GradeViewActivity.this, "An error occurred, please try again later", Style.ALERT).setConfiguration(oneSecondConfig).show();
+			displayCrouton("AN ERROR OCCURRED, PLEASE TRY AGAIN LATER", 3000, Style.ALERT);
 			return null;
 		}
 		JSONObject data = result.getJSONObject("data");
@@ -289,13 +309,14 @@ public class GradeViewActivity extends ListActivity {
 	
 	private InputStream downloadUrl(String urlString) throws IOException {
 		URL url = new URL(urlString);
-		HttpURLConnection conn = (HttpURLConnection)url.openConnection();
+		conn = (HttpURLConnection)url.openConnection();
 		conn.setReadTimeout(10000 /* milliseconds */);
 	    conn.setConnectTimeout(15000 /* milliseconds */);
 	    conn.setRequestMethod("GET");
 	    conn.setDoInput(true);
 	    conn.connect();
-	    return conn.getInputStream();
+	    InputStream stream = conn.getInputStream(); // TODO: use better server, this thing takes 5 seconds :(
+	    return stream;
 	}
 	
 	private static String convertStreamToString(InputStream inputStream) throws IOException {
@@ -311,6 +332,7 @@ public class GradeViewActivity extends ListActivity {
                 }
             } finally {
                 inputStream.close();
+                conn.disconnect();
             }
             return writer.toString();
         } else {
@@ -333,5 +355,21 @@ public class GradeViewActivity extends ListActivity {
 		else if(grade.equals("D")) return R.drawable.grade_d;
 		else if(grade.equals("D-")) return R.drawable.grade_dminus;
 		return R.drawable.grade_f;
+	}
+	
+	public void displayCrouton(String text, int timeMilli, Style style) {
+		Style style1;
+		if(style.equals(Style.ALERT)) {
+			style1 = new Style.Builder().setHeight(LayoutParams.WRAP_CONTENT).setGravity(Gravity.CENTER_HORIZONTAL)
+					.setTextSize(15).setPaddingInPixels(15).setBackgroundColorValue(Style.holoRedLight).build();
+		} else if(style.equals(Style.CONFIRM)) {
+			style1 = new Style.Builder().setHeight(LayoutParams.WRAP_CONTENT).setGravity(Gravity.CENTER_HORIZONTAL)
+					.setTextSize(15).setPaddingInPixels(15).setBackgroundColorValue(Style.holoGreenLight).build();
+		} else {
+			style1 = new Style.Builder().setHeight(LayoutParams.WRAP_CONTENT).setGravity(Gravity.CENTER_HORIZONTAL)
+					.setTextSize(15).setPaddingInPixels(15).setBackgroundColorValue(Style.holoBlueLight).build();
+		}
+		Configuration config = new Configuration.Builder().setDuration(timeMilli).build();
+		Crouton.makeText(GradeViewActivity.this, text, style1).setConfiguration(config).show();
 	}
 }

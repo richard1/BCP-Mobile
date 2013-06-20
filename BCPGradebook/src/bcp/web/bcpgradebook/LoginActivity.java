@@ -13,6 +13,10 @@ import java.net.URL;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import de.keyboardsurfer.android.widget.crouton.Configuration;
+import de.keyboardsurfer.android.widget.crouton.Crouton;
+import de.keyboardsurfer.android.widget.crouton.Style;
+
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
@@ -21,20 +25,21 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
-import android.graphics.Color;
+import android.net.ConnectivityManager;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.View;
+import android.view.ViewGroup.LayoutParams;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.TextView;
-import android.widget.Toast;
 
 public class LoginActivity extends Activity {
 	
@@ -60,7 +65,8 @@ public class LoginActivity extends Activity {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		setTitleColor(Color.WHITE);
+		setContentView(R.layout.activity_login);
+		setTitle("Sign in");
 		
 		// Check if logged in already.
 		SharedPreferences passPref = getSharedPreferences("password", MODE_PRIVATE);
@@ -68,7 +74,6 @@ public class LoginActivity extends Activity {
 		SharedPreferences userPref = getSharedPreferences("username", MODE_PRIVATE);
 		String savedUsername = userPref.getString("username", "");
 		if(savedPassword != null && savedPassword.length() > 0) {
-			//Toast.makeText(getApplicationContext(), "Is already logged in", Toast.LENGTH_SHORT).show();
 			Intent intent = new Intent(getBaseContext(), GradeViewActivity.class);
 			intent.putExtra("username", savedUsername);
 			intent.putExtra("encryptedPassword", savedPassword);
@@ -77,9 +82,6 @@ public class LoginActivity extends Activity {
 			finish();
 		}
 		
-
-		setContentView(R.layout.activity_login);
-
 		// Set up the login form.
 		mEmail = getIntent().getStringExtra(EXTRA_EMAIL);
 		mEmailView = (EditText) findViewById(R.id.email);
@@ -102,13 +104,16 @@ public class LoginActivity extends Activity {
 		mLoginStatusView = findViewById(R.id.login_status);
 		mLoginStatusMessageView = (TextView) findViewById(R.id.login_status_message);
 
-		findViewById(R.id.sign_in_button).setOnClickListener(
-			new View.OnClickListener() {
-				@Override
-				public void onClick(View view) {
-					attemptLogin();
-				}
-			});
+		findViewById(R.id.sign_in_button).setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View view) {
+				attemptLogin();
+			}
+		});
+		
+		if(!isOnline()) {
+			displayCrouton("NO INTERNET CONNECTION", 3000, Style.ALERT);
+		}
 	}
 
 	@Override
@@ -121,9 +126,19 @@ public class LoginActivity extends Activity {
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
     }
+	
+	public boolean isOnline() {
+	    ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+	    return cm.getActiveNetworkInfo() != null && cm.getActiveNetworkInfo().isConnectedOrConnecting();
+	}
 
 	public void attemptLogin() {
 		if (mAuthTask != null) {
+			return;
+		}
+		
+		if(!isOnline()) {
+			displayCrouton("NO INTERNET CONNECTION", 3000, Style.ALERT);
 			return;
 		}
 
@@ -211,9 +226,6 @@ public class LoginActivity extends Activity {
 	    // Is the view now checked?
 	    boolean checked = ((CheckBox) view).isChecked();
 	    wantsRemember = checked;
-	    if(checked) {
-	    	System.out.println("CHECK\nCHECK\nCHECK");
-	    }
 	}
 
 	/**
@@ -253,7 +265,6 @@ public class LoginActivity extends Activity {
 				InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
 				imm.hideSoftInputFromWindow(mEmailView.getWindowToken(), 0);
 				imm.hideSoftInputFromWindow(mPasswordView.getWindowToken(), 0);
-				System.out.println("SUCCESS\nSUCCESS\nSUCCESS");
 				Intent intent = new Intent(getBaseContext(), GradeViewActivity.class);
 				intent.putExtra("username", mEmail);
 				intent.putExtra("encryptedPassword", mEncryptedPassword);
@@ -284,7 +295,6 @@ public class LoginActivity extends Activity {
 			if(stream != null)
 				stream.close();
 		}
-		System.out.println(json);
 		JSONObject result = new JSONObject(json);
 		JSONObject dat = result.getJSONObject("data");
 		if(result.getInt("error") != 0) { // error
@@ -326,4 +336,20 @@ public class LoginActivity extends Activity {
             return "";
         }
     }
+	
+	public void displayCrouton(String text, int timeMilli, Style style) {
+		Style style1;
+		if(style.equals(Style.ALERT)) {
+			style1 = new Style.Builder().setHeight(LayoutParams.WRAP_CONTENT).setGravity(Gravity.CENTER_HORIZONTAL)
+					.setTextSize(15).setPaddingInPixels(15).setBackgroundColorValue(Style.holoRedLight).build();
+		} else if(style.equals(Style.CONFIRM)) {
+			style1 = new Style.Builder().setHeight(LayoutParams.WRAP_CONTENT).setGravity(Gravity.CENTER_HORIZONTAL)
+					.setTextSize(15).setPaddingInPixels(15).setBackgroundColorValue(Style.holoGreenLight).build();
+		} else {
+			style1 = new Style.Builder().setHeight(LayoutParams.WRAP_CONTENT).setGravity(Gravity.CENTER_HORIZONTAL)
+					.setTextSize(15).setPaddingInPixels(15).setBackgroundColorValue(Style.holoBlueLight).build();
+		}
+		Configuration config = new Configuration.Builder().setDuration(timeMilli).build();
+		Crouton.makeText(LoginActivity.this, text, style1).setConfiguration(config).show();
+	}
 }
