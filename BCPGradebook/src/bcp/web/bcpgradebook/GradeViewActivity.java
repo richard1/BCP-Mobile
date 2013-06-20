@@ -11,6 +11,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -38,6 +39,7 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.SpinnerAdapter;
 import android.widget.Toast;
+import bcp.web.bcpgradebook.lib.DatabaseHandler;
 import bcp.web.bcpgradebook.lib.Grade;
 import bcp.web.bcpgradebook.lib.GradeAdapter;
 
@@ -66,12 +68,14 @@ public class GradeViewActivity extends Activity {
 	public boolean isRefreshing = false;
 	PullToRefreshListView pullToRefreshView;
 	private boolean showSemester1 = true;
+	DatabaseHandler db;
 
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_grade_view);
 		
 		Crouton.cancelAllCroutons();
+		db = new DatabaseHandler(this);
 		
 		setTitle("");
 		getActionBar().setDisplayShowTitleEnabled(false);
@@ -84,10 +88,16 @@ public class GradeViewActivity extends Activity {
 		    }
 		});
 		
-		listView = (PullToRefreshListView)findViewById(R.id.listView1);
-		adapter = new GradeAdapter(this, R.layout.grade_item_row, mainList);
-		listView.setAdapter(adapter);
-		listView.setOnItemClickListener(listener);
+		semesterList1.addAll((ArrayList<Grade>) db.getAllWithSemester(1));
+		semesterList2.addAll((ArrayList<Grade>) db.getAllWithSemester(2));
+		
+		/*
+		mainList = (ArrayList<Grade>) db.getAll();       
+        
+        for (Grade g : mainList) {
+            String log = "qaz Name: " + g.title + " , sub: " + g.subtitle + ", iconid: " + g.icon;
+            System.out.println(log);
+        }*/
 		
 		progress = new ProgressDialog(this);
 		progress.setTitle("Welcome");
@@ -144,6 +154,19 @@ public class GradeViewActivity extends Activity {
 			showSemester1 = false;
 		}
 		
+		if(showSemester1) {
+			mainList.clear();
+			mainList.addAll(semesterList1);
+		} else {
+			mainList.clear();
+			mainList.addAll(semesterList2);
+		}
+		
+		listView = (PullToRefreshListView)findViewById(R.id.listView1);
+		adapter = new GradeAdapter(this, R.layout.grade_item_row, mainList);
+		listView.setAdapter(adapter);
+		listView.setOnItemClickListener(listener);
+		
 		Intent intent = this.getIntent();
 		String username = intent.getStringExtra("username");
 		String encryptedPassword = intent.getStringExtra("encryptedPassword");
@@ -156,6 +179,7 @@ public class GradeViewActivity extends Activity {
 			//Crouton.makeText(GradeViewActivity.this, "CONNECTED", Style.CONFIRM).setConfiguration(CONFIGURATION_3_SEC).show();
 			displayCrouton("CONNECTED", 3000, Style.CONFIRM);
 		}
+		
 		new DownloadGradesTask().execute(gradesUrl);
 	}
 	
@@ -285,12 +309,15 @@ public class GradeViewActivity extends Activity {
 			displayCrouton("AN ERROR OCCURRED, PLEASE TRY AGAIN LATER", 3000, Style.ALERT);
 			return null;
 		}
+		db.deleteAll();
 		JSONObject data = result.getJSONObject("data");
 		JSONArray sem1 = data.getJSONArray("semester1");
 		for(int i = 0; i < sem1.length(); i++) {
 			JSONObject row = sem1.getJSONObject(i);
 			if(!row.getString("class").equals("Homeroom")) {
-				semesterList1.add(new Grade(getIdFromGrade(row.getString("grade")), row.getString("class"), row.getString("percentage")));
+				Grade grade = new Grade(getIdFromGrade(row.getString("grade")), row.getString("class"), row.getString("percentage"), 1);
+				semesterList1.add(grade);
+				db.add(grade);
 			}
 		}
 		
@@ -298,7 +325,9 @@ public class GradeViewActivity extends Activity {
 		for(int i = 0; i < sem2.length(); i++) {
 			JSONObject row = sem2.getJSONObject(i);
 			if(!row.getString("class").equals("Homeroom")) {
-				semesterList2.add(new Grade(getIdFromGrade(row.getString("grade")), row.getString("class"), row.getString("percentage")));
+				Grade grade = new Grade(getIdFromGrade(row.getString("grade")), row.getString("class"), row.getString("percentage"), 2);
+				semesterList2.add(grade);
+				db.add(grade);
 			}
 		}
 		if(showSemester1) {
