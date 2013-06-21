@@ -2,6 +2,8 @@ package bcp.web.bcpgradebook;
 
 import java.util.ArrayList;
 
+import bcp.web.bcpgradebook.lib.DatabaseHandler;
+
 import android.net.Uri;
 import android.os.Bundle;
 import android.app.ActionBar;
@@ -112,6 +114,7 @@ public class CourseDetailActivity extends ListActivity {
 		        builder.show();
 		        return true;
 	        case R.id.menu_logout:
+	    		new DatabaseHandler(this).deleteAll();
 		        getSharedPreferences("username", MODE_PRIVATE).edit().clear().commit();
 		        getSharedPreferences("password", MODE_PRIVATE).edit().clear().commit();
 		        Intent intent = new Intent(getApplicationContext(), LoginActivity.class);

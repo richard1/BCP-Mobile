@@ -1,6 +1,7 @@
 package bcp.web.bcpgradebook.lib;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import bcp.web.bcpgradebook.R;
@@ -139,6 +140,25 @@ public class DatabaseHandler extends SQLiteOpenHelper {
  
         // return contact list
         return gradeList;
+    }
+    
+    public HashMap<String, String> getPercentTitleMap(int semester) {
+        HashMap<String, String> map = new HashMap<String, String>();
+        // Select All Query
+        String selectQuery = "SELECT  * FROM " + TABLE_GRADES + " WHERE " + KEY_SEMESTER + "='" + semester + "'";
+
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor cursor = db.rawQuery(selectQuery, null);
+ 
+        // looping through all rows and adding to list
+        if (cursor.moveToFirst()) {
+            do {
+            	map.put(cursor.getString(1), cursor.getString(3)); // course name, grade percentage
+            } while (cursor.moveToNext());
+        }
+ 
+        // return contact list
+        return map;
     }
  
     /*

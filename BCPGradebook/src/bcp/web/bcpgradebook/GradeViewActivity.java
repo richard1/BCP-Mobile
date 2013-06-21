@@ -9,8 +9,10 @@ import java.io.StringWriter;
 import java.io.Writer;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.List;
 
 import org.json.JSONArray;
@@ -28,6 +30,7 @@ import android.net.ConnectivityManager;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.text.Html;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -69,6 +72,7 @@ public class GradeViewActivity extends Activity {
 	PullToRefreshListView pullToRefreshView;
 	private boolean showSemester1 = true;
 	DatabaseHandler db;
+	DecimalFormat decimalFormat = new DecimalFormat("##0.00");
 
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -225,6 +229,7 @@ public class GradeViewActivity extends Activity {
 		        builder.show();
 		        return true;
 		    case R.id.menu_logout:
+		    	db.deleteAll();
 		        getSharedPreferences("username", MODE_PRIVATE).edit().clear().commit();
 		        getSharedPreferences("password", MODE_PRIVATE).edit().clear().commit();
 		        Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
@@ -266,6 +271,7 @@ public class GradeViewActivity extends Activity {
 				return getResources().getString(R.string.json_error) + e.toString();
 			} catch(Exception e) {
 				System.out.println("ATTENTION\nERROR\nHEREITIS\n"+e.toString());
+				e.printStackTrace();
 				return "Unknown Exception!: " + e.toString();
 			}
 		}
@@ -309,27 +315,65 @@ public class GradeViewActivity extends Activity {
 			displayCrouton("AN ERROR OCCURRED, PLEASE TRY AGAIN LATER", 3000, Style.ALERT);
 			return null;
 		}
-		db.deleteAll();
+		
+		HashMap<String, String> percentMap = db.getPercentTitleMap(1);
+		System.out.println("MAP: " + percentMap.toString()); // TODO: check if key exists
+		
 		JSONObject data = result.getJSONObject("data");
 		JSONArray sem1 = data.getJSONArray("semester1");
 		for(int i = 0; i < sem1.length(); i++) {
 			JSONObject row = sem1.getJSONObject(i);
 			if(!row.getString("class").equals("Homeroom")) {
-				Grade grade = new Grade(getIdFromGrade(row.getString("grade")), row.getString("class"), row.getString("percentage"), 1);
+				String percent = row.getString("percentage");
+				String extraText = "";
+				if(!percentMap.isEmpty()) {
+					String courseName = row.getString("class");
+					System.out.println("looking for: " + courseName + "\n" + percentMap.get(courseName));
+					double oldPercent = Double.parseDouble(percentMap.get(courseName).replaceAll("%", ""));
+					double newPercent = Double.parseDouble(percent.replaceAll("%", ""));
+					System.out.println(newPercent + " - " + oldPercent + " = " + (newPercent - oldPercent));
+					extraText += "   " + (newPercent < oldPercent ? "" : "+") 
+							+ decimalFormat.format((newPercent - oldPercent)) + "%";
+				}
+				
+				Grade grade = new Grade(getIdFromGrade(row.getString("grade")), row.getString("class"), percent, 1);
+				grade.addExtraText(extraText);
 				semesterList1.add(grade);
-				db.add(grade);
 			}
 		}
+		
+		percentMap = db.getPercentTitleMap(2);
+		System.out.println("MAP: " + percentMap.toString());
 		
 		JSONArray sem2 = data.getJSONArray("semester2");
 		for(int i = 0; i < sem2.length(); i++) {
 			JSONObject row = sem2.getJSONObject(i);
 			if(!row.getString("class").equals("Homeroom")) {
-				Grade grade = new Grade(getIdFromGrade(row.getString("grade")), row.getString("class"), row.getString("percentage"), 2);
+				String percent = /*row.getString("percentage")*/ new DecimalFormat("##0.00").format(((Math.random()*10)+90)) + "%"; // TODO: switch back
+				String extraText = "";
+				if(!percentMap.isEmpty()) {
+					String courseName = row.getString("class");
+					System.out.println("looking for: " + courseName + "\n" + percentMap.get(courseName));
+					double oldPercent = Double.parseDouble(percentMap.get(courseName).replaceAll("%", ""));
+					double newPercent = Double.parseDouble(percent.replaceAll("%", ""));
+					System.out.println(newPercent + " - " + oldPercent + " = " + (newPercent - oldPercent));
+					extraText += "   " + (newPercent < oldPercent ? "" : "+") 
+							+ decimalFormat.format((newPercent - oldPercent)) + "%";
+				}
+				
+				Grade grade = new Grade(getIdFromGrade(row.getString("grade")), row.getString("class"), percent, 2);
+				grade.addExtraText(extraText);
 				semesterList2.add(grade);
-				db.add(grade);
 			}
 		}
+		db.deleteAll();
+		for(Grade g : semesterList1) {
+			db.add(g);
+		}
+		for(Grade g : semesterList2) {
+			db.add(g);
+		}
+		// TODO: load list into db
 		if(showSemester1) {
 			return semesterList1;
 		}

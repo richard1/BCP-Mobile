@@ -6,6 +6,8 @@ public class Grade {
     public String subtitle;
     public int semester;
     
+    public String extra = "";
+    
     public Grade() {
         super();
     }
@@ -32,5 +34,13 @@ public class Grade {
     
     public void setSemester(int semester) {
     	this.semester = semester;
+    }
+    
+    public void addExtraText(String extra) {
+    	this.extra = extra;
+    }
+    
+    public String getPercentWithExtra() {
+    	return subtitle + extra;
     }
 }
