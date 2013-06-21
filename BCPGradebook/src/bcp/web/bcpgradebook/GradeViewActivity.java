@@ -349,7 +349,7 @@ public class GradeViewActivity extends Activity {
 		for(int i = 0; i < sem2.length(); i++) {
 			JSONObject row = sem2.getJSONObject(i);
 			if(!row.getString("class").equals("Homeroom")) {
-				String percent = /*row.getString("percentage")*/ new DecimalFormat("##0.00").format(((Math.random()*10)+90)) + "%"; // TODO: switch back
+				String percent = row.getString("percentage");
 				String extraText = "";
 				if(!percentMap.isEmpty()) {
 					String courseName = row.getString("class");
@@ -373,7 +373,6 @@ public class GradeViewActivity extends Activity {
 		for(Grade g : semesterList2) {
 			db.add(g);
 		}
-		// TODO: load list into db
 		if(showSemester1) {
 			return semesterList1;
 		}
