@@ -69,7 +69,8 @@ public class CourseDetailActivity extends ListActivity {
 		listContent.add("these are placeholders");
 		listContent.add(id);
 		
-		adapter = new ArrayAdapter<String>(this, /*R.id.course_item_row*/android.R.layout.simple_list_item_1, listContent);
+		//android.R.layout.simple_list_item_1
+		adapter = new ArrayAdapter<String>(this, R.layout.course_item_row, listContent);
 		setListAdapter(adapter);
 		
 		getListView().setOnItemClickListener(listener);
