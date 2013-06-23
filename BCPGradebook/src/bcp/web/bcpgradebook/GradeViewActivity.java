@@ -28,9 +28,12 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.ViewPager;
+import android.support.v4.view.ViewPager.OnPageChangeListener;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -51,13 +54,16 @@ import com.actionbarsherlock.view.MenuItem;
 import com.handmark.pulltorefresh.library.PullToRefreshBase;
 import com.handmark.pulltorefresh.library.PullToRefreshBase.OnRefreshListener;
 import com.handmark.pulltorefresh.library.PullToRefreshListView;
+import com.jeremyfeinstein.slidingmenu.lib.SlidingMenu;
+import com.jeremyfeinstein.slidingmenu.lib.app.SlidingFragmentActivity;
 import com.viewpagerindicator.TitlePageIndicator;
+import com.viewpagerindicator.TitlePageIndicator.IndicatorStyle;
 
 import de.keyboardsurfer.android.widget.crouton.Configuration;
 import de.keyboardsurfer.android.widget.crouton.Crouton;
 import de.keyboardsurfer.android.widget.crouton.Style;
 
-public class GradeViewActivity extends SherlockFragmentActivity {
+public class GradeViewActivity extends SlidingFragmentActivity {
 
 	private String gradesUrl;
 	private ArrayList<Grade> semesterList1 = new ArrayList<Grade>();
@@ -77,8 +83,10 @@ public class GradeViewActivity extends SherlockFragmentActivity {
 
 	GradeFragment semesterOneFragment;
 	GradeFragment semesterTwoFragment;
+	
+	MenuListFragment mFrag;
 
-	protected void onCreate(Bundle savedInstanceState) {
+	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main); // was activity_grade_view
 
@@ -91,6 +99,26 @@ public class GradeViewActivity extends SherlockFragmentActivity {
 		humbleBundle.putBoolean("showSemesterOne", false);
 		semesterTwoFragment = new GradeFragment();
 		semesterTwoFragment.setArguments(humbleBundle);
+		
+		setBehindContentView(R.layout.menu_frame);
+		
+		if (savedInstanceState == null) {
+			FragmentTransaction t = this.getSupportFragmentManager().beginTransaction();
+			mFrag = new MenuListFragment();
+			t.replace(R.id.menu_frame, mFrag);
+			t.commit();
+		} else {
+			mFrag = (MenuListFragment)this.getSupportFragmentManager().findFragmentById(R.id.menu_frame);
+		}
+		
+		SlidingMenu sm = getSlidingMenu();
+		sm.setShadowWidthRes(R.dimen.shadow_width);
+		sm.setShadowDrawable(R.drawable.shadow);
+		sm.setBehindOffsetRes(R.dimen.slidingmenu_offset);
+		sm.setFadeDegree(0.35f);
+		sm.setTouchModeAbove(SlidingMenu.TOUCHMODE_MARGIN); // was fullscreen
+
+		getActionBar().setDisplayHomeAsUpEnabled(true);
 
 		mViewPager = (ViewPager) findViewById(R.id.crouton_pager);
 		mAdapter = new GradePagerAdapter(getSupportFragmentManager());
@@ -98,6 +126,33 @@ public class GradeViewActivity extends SherlockFragmentActivity {
 		mViewPager.setOffscreenPageLimit(2);
 		mIndicator = (TitlePageIndicator) findViewById(R.id.titles);
 		mIndicator.setViewPager(mViewPager);
+		//mIndicator.setFooterIndicatorStyle(IndicatorStyle.Triangle);
+				
+		/*
+		mViewPager.setOnPageChangeListener(new OnPageChangeListener() {
+			@Override
+			public void onPageScrollStateChanged(int arg0) { }
+
+			@Override
+			public void onPageScrolled(int arg0, float arg1, int arg2) { }
+
+			@Override
+			public void onPageSelected(int position) {
+				System.out.println("LEPOS: " + position);
+				switch (position) {
+				case 0:
+					getSlidingMenu().setTouchModeAbove(SlidingMenu.TOUCHMODE_FULLSCREEN);
+					break;
+				default:
+					getSlidingMenu().setTouchModeAbove(SlidingMenu.TOUCHMODE_NONE); // was margin
+					break;
+				}
+			}
+
+		});
+		
+		getSlidingMenu().setTouchModeAbove(SlidingMenu.TOUCHMODE_FULLSCREEN);*/
+
 
 		Crouton.cancelAllCroutons();
 		db = new DatabaseHandler(this);
@@ -144,6 +199,7 @@ public class GradeViewActivity extends SherlockFragmentActivity {
 		super.onDestroy();
 	}
 	
+	
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// Inflate the menu; this adds items to the action bar if it is present.
@@ -155,6 +211,9 @@ public class GradeViewActivity extends SherlockFragmentActivity {
 	public boolean onOptionsItemSelected(MenuItem item) {
 	    // Handle item selection
 	    switch (item.getItemId()) {
+		    case android.R.id.home:
+				toggle();
+				return true;
 		    case R.id.menu_about:	    	
 		    	String about = "By Richard Lin '13\n\nWith help from Jonathan Chang '13, Bryce Pauken '14\n\n" +
 		    			"Based on Bryce's BCP Mobile app for iOS, this app was created to provide Android-loving " +
