@@ -13,6 +13,8 @@ import java.net.URL;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import bcp.web.bcpgradebook.lib.DatabaseHandler;
+
 import de.keyboardsurfer.android.widget.crouton.Configuration;
 import de.keyboardsurfer.android.widget.crouton.Crouton;
 import de.keyboardsurfer.android.widget.crouton.Style;
@@ -80,7 +82,11 @@ public class LoginActivity extends Activity {
 			startActivity(intent);
 			overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
 			finish();
+			return; // exit onCreate
 		}
+		
+		// Not logged in already - delete the stored grades database.
+		new DatabaseHandler(this).deleteAll();
 		
 		// Set up the login form.
 		mEmail = getIntent().getStringExtra(EXTRA_EMAIL);
