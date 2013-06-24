@@ -28,12 +28,11 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
-import android.support.v4.view.ViewPager.OnPageChangeListener;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -48,7 +47,6 @@ import bcp.web.bcpgradebook.lib.Grade;
 import bcp.web.bcpgradebook.lib.GradeAdapter;
 
 import com.actionbarsherlock.app.SherlockFragment;
-import com.actionbarsherlock.app.SherlockFragmentActivity;
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuItem;
 import com.handmark.pulltorefresh.library.PullToRefreshBase;
@@ -57,8 +55,6 @@ import com.handmark.pulltorefresh.library.PullToRefreshListView;
 import com.jeremyfeinstein.slidingmenu.lib.SlidingMenu;
 import com.jeremyfeinstein.slidingmenu.lib.app.SlidingFragmentActivity;
 import com.viewpagerindicator.TitlePageIndicator;
-import com.viewpagerindicator.TitlePageIndicator.IndicatorStyle;
-
 import de.keyboardsurfer.android.widget.crouton.Configuration;
 import de.keyboardsurfer.android.widget.crouton.Crouton;
 import de.keyboardsurfer.android.widget.crouton.Style;
@@ -78,6 +74,7 @@ public class GradeViewActivity extends SlidingFragmentActivity {
 	ViewPager mViewPager;
 	TitlePageIndicator mIndicator;
 	GradePagerAdapter mAdapter;
+	SlidingMenu sm;
 
 	HttpURLConnection conn;
 
@@ -85,10 +82,11 @@ public class GradeViewActivity extends SlidingFragmentActivity {
 	GradeFragment semesterTwoFragment;
 	
 	MenuListFragment mFrag;
+	Fragment mContent;
 
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		setContentView(R.layout.main); // was activity_grade_view
+		//setContentView(R.layout.main); // was activity_grade_view
 
 		Bundle humbleBundle = new Bundle();
 		humbleBundle.putBoolean("showSemesterOne", true);
@@ -103,20 +101,30 @@ public class GradeViewActivity extends SlidingFragmentActivity {
 		setBehindContentView(R.layout.menu_frame);
 		
 		if (savedInstanceState == null) {
-			FragmentTransaction t = this.getSupportFragmentManager().beginTransaction();
 			mFrag = new MenuListFragment();
-			t.replace(R.id.menu_frame, mFrag);
-			t.commit();
+			getSupportFragmentManager().beginTransaction().replace(R.id.menu_frame, mFrag).commit();
 		} else {
 			mFrag = (MenuListFragment)this.getSupportFragmentManager().findFragmentById(R.id.menu_frame);
 		}
 		
-		SlidingMenu sm = getSlidingMenu();
+		
+		if (savedInstanceState != null)
+			mContent = getSupportFragmentManager().getFragment(savedInstanceState, "mContent");
+		//if (mContent == null)
+			//mContent = new ColorFragment(R.color.aqua); // was new color frag
+		
+		setContentView(R.layout.main);
+		//getSupportFragmentManager().beginTransaction().add(R.id.main, (Fragment) mContent, "main");
+		//getSupportFragmentManager().beginTransaction().replace(R.id.main, mContent).commit();
+		
+		
+		
+		sm = getSlidingMenu();
 		sm.setShadowWidthRes(R.dimen.shadow_width);
 		sm.setShadowDrawable(R.drawable.shadow);
 		sm.setBehindOffsetRes(R.dimen.slidingmenu_offset);
 		sm.setFadeDegree(0.35f);
-		sm.setTouchModeAbove(SlidingMenu.TOUCHMODE_MARGIN); // was fullscreen
+		sm.setTouchModeAbove(SlidingMenu.TOUCHMODE_NONE); // fullscreen is bad
 
 		getActionBar().setDisplayHomeAsUpEnabled(true);
 
@@ -253,6 +261,13 @@ public class GradeViewActivity extends SlidingFragmentActivity {
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 		overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
 	}
+	
+	protected void onResume() {
+		super.onResume();
+		if(sm.isMenuShowing()) {
+			toggle();
+		}
+	}
 
 	public boolean isOnline() {
 		ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -353,10 +368,8 @@ public class GradeViewActivity extends SlidingFragmentActivity {
 		public Fragment getItem(int position) {
 
 			if (PageInfo.Crouton.ordinal() == position) {
-
 				return semesterOneFragment;
 			} else if (PageInfo.About.ordinal() == position) {
-
 				return semesterTwoFragment;
 			}
 			return null;
@@ -373,6 +386,11 @@ public class GradeViewActivity extends SlidingFragmentActivity {
 			else if(position == 1) return "Semester 2";
 			else return "What are you even doing I don't know how you got here please turn back now thanks";
 		}
+		
+		@Override
+	    public int getItemPosition(Object object) {
+	        return PagerAdapter.POSITION_NONE;
+	    }
 	}
 
 	enum PageInfo {
@@ -438,7 +456,7 @@ public class GradeViewActivity extends SlidingFragmentActivity {
 		JSONObject result = new JSONObject(rawJson);
 		int error = result.getInt("error");
 		if(error != 0) {
-			displayCrouton("AN ERROR OCCURRED, PLEASE TRY AGAIN LATER", 3000, Style.ALERT);
+			displayCrouton("AN ERROR OCCURRED, PLEASE TRY AGAIN LATER [" + error + "]", 3000, Style.ALERT);
 			return;
 		}
 
@@ -533,4 +551,14 @@ public class GradeViewActivity extends SlidingFragmentActivity {
 			return "";
 		}
 	}
+	/*
+	public void switchContent(Fragment fragment) {
+		mViewPager.setVisibility(mViewPager.getVisibility() == ViewPager.VISIBLE ? ViewPager.GONE : ViewPager.VISIBLE);
+		mIndicator.setVisibility(mIndicator.getVisibility() == TitlePageIndicator.VISIBLE ? TitlePageIndicator.GONE : TitlePageIndicator.VISIBLE);
+		Toast.makeText(GradeViewActivity.this, "in GVA switch", Toast.LENGTH_SHORT).show();
+		mContent = fragment;
+		//getSupportFragmentManager().beginTransaction().replace(R.id.main, fragment).commit();
+		getSupportFragmentManager().beginTransaction().show(mContent).commit();
+		getSlidingMenu().showContent();
+	}*/
 }

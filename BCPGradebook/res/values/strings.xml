@@ -13,5 +13,7 @@
     <string name="json_error">Dis JSON be bad</string>
     <string name="title_activity_course_detail">CourseDetailActivity</string>
     <string name="courseid">id</string>
+    <string name="title_activity_announcements">AnnouncementsActivity</string>
+    <string name="title_activity_news_rss">NewsRssActivity</string>
 
 </resources>

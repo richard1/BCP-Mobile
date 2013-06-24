@@ -1,7 +1,9 @@
 package bcp.web.bcpgradebook;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.ListFragment;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -24,19 +26,11 @@ public class MenuListFragment extends ListFragment {
 		super.onActivityCreated(savedInstanceState);
 		adapter = new SampleAdapter(getActivity());
 		//for (int i = 0; i < 20; i++) {
-			adapter.add(new SampleItem("Sample List", android.R.drawable.ic_menu_search));
-			adapter.add(new SampleItem("Sample List", android.R.drawable.ic_dialog_info));
-			adapter.add(new SampleItem("Sample List", android.R.drawable.ic_menu_day));
-			adapter.add(new SampleItem("Sample List", android.R.drawable.ic_lock_silent_mode_off));
-			adapter.add(new SampleItem("Sample List", android.R.drawable.ic_menu_my_calendar));
-			adapter.add(new SampleItem("Sample List", android.R.drawable.ic_menu_gallery));
-			adapter.add(new SampleItem("Sample List", android.R.drawable.ic_menu_view));
-			
-			adapter.add(new SampleItem("About", R.drawable.icon_about));
 			adapter.add(new SampleItem("Announcements", R.drawable.icon_announcements));
 			adapter.add(new SampleItem("Grades", R.drawable.icon_grades));
-			adapter.add(new SampleItem("Log Out", R.drawable.icon_logout));
 			adapter.add(new SampleItem("News", R.drawable.icon_news));
+			adapter.add(new SampleItem("About", R.drawable.icon_about));
+			adapter.add(new SampleItem("Log Out", R.drawable.icon_logout));
 			adapter.add(new SampleItem("Rate", R.drawable.icon_rate));
 		//}
 		setListAdapter(adapter);
@@ -45,7 +39,36 @@ public class MenuListFragment extends ListFragment {
 	public void onListItemClick(ListView l, View v, int position, long id) {
         super.onListItemClick(l, v, position, id);
         Toast.makeText(getActivity(), ((SampleItem)adapter.getItem(position)).tag, Toast.LENGTH_SHORT).show();
+        Intent intent;
+		switch (position) {
+			case 0:
+				intent = new Intent(getActivity(), AnnouncementsActivity.class);
+				startActivity(intent);
+				getActivity().overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
+				break;
+			case 1:
+				intent = new Intent(getActivity(), GradeViewActivity.class);
+				intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+				startActivity(intent);
+				getActivity().overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
+				break;
+			case 2:
+				intent = new Intent(getActivity(), NewsRssActivity.class);
+				startActivity(intent);
+				getActivity().overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
+				break;
+		}
+		//if (newContent != null)
+			//switchFragment(newContent);
     }
+	
+	/*
+	private void switchFragment(Fragment fragment) {
+		if (getActivity() == null)
+			return;
+		GradeViewActivity gva = (GradeViewActivity) getActivity();
+		gva.switchContent(fragment);
+	}*/
 
 	private class SampleItem {
 		public String tag;
