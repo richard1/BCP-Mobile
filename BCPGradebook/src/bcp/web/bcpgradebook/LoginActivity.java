@@ -257,16 +257,16 @@ public class LoginActivity extends Activity {
 
 			if (success) {
 				if(wantsRemember) {
-					// Store username.
-					Editor editorUser = getSharedPreferences("username", MODE_PRIVATE).edit();
-					editorUser.putString("username", mEmail);
-					editorUser.commit();
-					
 					// Store encrypted password.
 					Editor editorPass = getSharedPreferences("password", MODE_PRIVATE).edit();
 					editorPass.putString("password", mEncryptedPassword);
 					editorPass.commit();
 				}
+				
+				// Store username.
+				Editor editorUser = getSharedPreferences("username", MODE_PRIVATE).edit();
+				editorUser.putString("username", mEmail);
+				editorUser.commit();
 				
 				InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
 				imm.hideSoftInputFromWindow(mEmailView.getWindowToken(), 0);
