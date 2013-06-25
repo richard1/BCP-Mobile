@@ -1,47 +1,62 @@
 package bcp.web.bcpgradebook;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
+import java.util.List;
 
-import bcp.web.bcpgradebook.lib.DatabaseHandler;
+import org.json.JSONException;
+import org.xmlpull.v1.XmlPullParserException;
 
-import com.actionbarsherlock.view.Menu;
+import bcp.web.bcpgradebook.lib.News;
+import bcp.web.bcpgradebook.lib.NewsAdapter;
+import bcp.web.bcpgradebook.lib.XmlParser;
+import bcp.web.bcpgradebook.lib.XmlParser.Entry;
+
 import com.actionbarsherlock.view.MenuItem;
+import com.handmark.pulltorefresh.library.PullToRefreshBase;
+import com.handmark.pulltorefresh.library.PullToRefreshBase.OnRefreshListener;
+import com.handmark.pulltorefresh.library.PullToRefreshListView;
 import com.jeremyfeinstein.slidingmenu.lib.SlidingMenu;
 import com.jeremyfeinstein.slidingmenu.lib.app.SlidingFragmentActivity;
 
-import android.app.AlertDialog;
-import android.content.DialogInterface;
+import de.keyboardsurfer.android.widget.crouton.Configuration;
+import de.keyboardsurfer.android.widget.crouton.Crouton;
+import de.keyboardsurfer.android.widget.crouton.Style;
+
+import android.content.Context;
 import android.content.Intent;
+import android.net.ConnectivityManager;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.view.Gravity;
 import android.view.View;
+import android.view.ViewGroup.LayoutParams;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.ListView;
-import android.widget.Toast;
 import android.widget.AdapterView.OnItemClickListener;
 
 public class NewsRssActivity extends SlidingFragmentActivity {
 	MenuListFragment mFrag;
 	SlidingMenu sm;
-	private ListView myList;
-	private ArrayAdapter<String> adapter;
-	private ArrayList<String> listContent = new ArrayList<String>();
+	private PullToRefreshListView myList;
+	//private ArrayAdapter<String> adapter;
+	private NewsAdapter adapter;
+	private ArrayList<News> listContent = new ArrayList<News>();
 	OnItemClickListener listener = new OnItemClickListener() {
 		@Override
 		public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-			String title = adapter.getItem(position);
-			String detail = "TODO: this goes to the BCP announcements page"; // TODO: redirect to BCP page
-	        AlertDialog.Builder builder = new AlertDialog.Builder(NewsRssActivity.this);
-	        builder.setTitle(title);
-	        builder.setMessage(detail);
-	        builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-	            public void onClick(DialogInterface dialog, int id) {
-	            }
-	        });
-	        builder.show();
+			String url = adapter.getItem(position - 1).link;
+			Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+        	startActivity(browserIntent);
 		}
 	};
+	HttpURLConnection conn;
+	public static final int MAX_NEWS_ARTICLES = 25;
+	public static final String NEWS_RSS_FEED = "http://www.bcp.org/news/rss.aspx?ModuleID=191";
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -49,6 +64,8 @@ public class NewsRssActivity extends SlidingFragmentActivity {
 		setContentView(R.layout.activity_news_rss);
 		setTitle("News");
 		setBehindContentView(R.layout.menu_frame);
+		
+		displayCrouton("RETRIEVING NEWS...", 5000, Style.INFO);
 		
 		if (savedInstanceState == null) {
 			mFrag = new MenuListFragment();
@@ -62,26 +79,23 @@ public class NewsRssActivity extends SlidingFragmentActivity {
 		sm.setShadowDrawable(R.drawable.shadow);
 		sm.setBehindOffsetRes(R.dimen.slidingmenu_offset);
 		sm.setFadeDegree(0.35f);
-		sm.setTouchModeAbove(SlidingMenu.TOUCHMODE_NONE); // fullscreen is bad
+		sm.setTouchModeAbove(SlidingMenu.TOUCHMODE_NONE);
 
 		getActionBar().setDisplayHomeAsUpEnabled(true);
 		
-		listContent.add("Some news happening");
-		listContent.add("Wow so much news");
-		listContent.add("I can't believe it");
-		
-		//android.R.layout.simple_list_item_1
-		myList = (ListView) findViewById(R.id.news_list);
-		adapter = new ArrayAdapter<String>(this, R.layout.course_item_row, listContent);
+		myList = (PullToRefreshListView) findViewById(R.id.news_list);
+		adapter = new NewsAdapter(this, R.layout.news_row, listContent);
 		myList.setAdapter(adapter);
 		myList.setOnItemClickListener(listener);
-	}
-
-	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
-		// Inflate the menu; this adds items to the action bar if it is present.
-		getSupportMenuInflater().inflate(R.menu.activity_announcements, menu);
-		return true;
+		
+		myList.setOnRefreshListener(new OnRefreshListener<ListView>() {
+			@Override
+			public void onRefresh(PullToRefreshBase<ListView> refreshView) {
+				new DownloadNewsTask().execute("http://www.bcp.org/news/rss.aspx?ModuleID=191");
+			}
+		});
+		
+		new DownloadNewsTask().execute(NEWS_RSS_FEED);
 	}
 
 	@Override
@@ -103,45 +117,108 @@ public class NewsRssActivity extends SlidingFragmentActivity {
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
-		// Handle item selection
 		switch (item.getItemId()) {
 			case android.R.id.home:
 				toggle();
 				return true;
-		    case R.id.menu_about:	    	
-		    	String about = "By Richard Lin '13\n\nWith help from Jonathan Chang '13, Bryce Pauken '14\n\n" +
-		    			"Based on Bryce's BCP Mobile app for iOS, this app was created to provide Android-loving " +
-		    			"Bellarmine students a convenient way to check their grades, view announcements, and more.\n\n" +
-		    			"If you're enjoying this app, please share this with your friends!";
-		        AlertDialog.Builder builder = new AlertDialog.Builder(NewsRssActivity.this);
-		        builder.setTitle("About");
-		        builder.setMessage(about);
-		        builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-		            public void onClick(DialogInterface dialog, int id) {
-		            }
-		        });
-		        builder.setNegativeButton("View on GitHub", new DialogInterface.OnClickListener() {
-		            public void onClick(DialogInterface dialog, int id) {
-		            	Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/richard1/"));
-		            	startActivity(browserIntent);
-		            }
-		        });
-		        builder.show();
-		        return true;
-		    case R.id.menu_logout:
-		    	new DatabaseHandler(this).deleteAll();
-		        getSharedPreferences("username", MODE_PRIVATE).edit().clear().commit();
-		        getSharedPreferences("password", MODE_PRIVATE).edit().clear().commit();
-		        Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
-		        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-		        startActivity(intent);
-		        overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
-		        return true;
-		    case R.id.menu_settings:
-		    	Toast.makeText(getApplicationContext(), "Settings (doesn't do anything)!", Toast.LENGTH_SHORT).show();
 		    default:
 		        return super.onOptionsItemSelected(item);
 	    }
 	}
-}
+	
+	private class DownloadNewsTask extends AsyncTask<String, Void, String> {
+		@Override
+		protected String doInBackground(String... urls) {
+			try {
+	            return loadXmlFromNetwork(urls[0]);
+	        } catch (IOException e) {
+	        	e.printStackTrace();
+	            return "Connection error";
+	        } catch (JSONException e) {
+				e.printStackTrace();
+				return "JSON error";
+			} catch (XmlPullParserException e) {
+				e.printStackTrace();
+				return "XMLPullParser error";
+			}
+		}
 
+		@Override
+		protected void onPostExecute(String result) {
+			if(!isOnline()) {
+				displayCrouton("NO INTERNET CONNECTION", 3000, Style.ALERT);
+			} else {
+				displayCrouton("UPDATED", 1000, Style.INFO);
+				refreshList();
+			}
+			myList.onRefreshComplete();
+			super.onPostExecute(result);
+		}
+	}
+	
+	private String loadXmlFromNetwork(String urlString) throws IOException, JSONException, XmlPullParserException {
+		InputStream stream = null;
+		XmlParser xmlParser = new XmlParser();
+		List<Entry> entries = null;
+
+		try {
+			stream = downloadUrl(urlString);        
+			entries = xmlParser.parse(stream);
+		} finally {
+			if (stream != null) {
+				stream.close();
+			} 
+		}
+
+		listContent.clear();
+		int count = 0;
+		for (Entry entry : entries) { 
+			listContent.add(new News(entry.title, entry.link, entry.summary));
+			count++;
+			if(count >= MAX_NEWS_ARTICLES) {
+				break;
+			}
+		}
+	    return "Success";		
+	}
+
+	private InputStream downloadUrl(String urlString) throws IOException {
+		URL url = new URL(urlString);
+		conn = (HttpURLConnection)url.openConnection();
+		conn.setReadTimeout(10000 /* milliseconds */);
+		conn.setConnectTimeout(15000 /* milliseconds */);
+		conn.setRequestMethod("GET");
+		conn.setDoInput(true);
+		conn.connect();
+		InputStream stream = conn.getInputStream();
+		return stream;
+	}
+	
+	public boolean isOnline() {
+		ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+		return cm.getActiveNetworkInfo() != null && cm.getActiveNetworkInfo().isConnectedOrConnecting();
+	}
+	
+	public void refreshList() {
+		myList = (PullToRefreshListView) findViewById(R.id.news_list);
+		adapter = new NewsAdapter(this, R.layout.news_row, listContent);
+		myList.setAdapter(adapter);
+		myList.setOnItemClickListener(listener);
+	}
+	
+	public void displayCrouton(String text, int timeMilli, Style style) {
+		Style style1;
+		if(style.equals(Style.ALERT)) {
+			style1 = new Style.Builder().setHeight(LayoutParams.WRAP_CONTENT).setGravity(Gravity.CENTER_HORIZONTAL)
+					.setTextSize(15).setPaddingInPixels(15).setBackgroundColorValue(Style.holoRedLight).build();
+		} else if(style.equals(Style.CONFIRM)) {
+			style1 = new Style.Builder().setHeight(LayoutParams.WRAP_CONTENT).setGravity(Gravity.CENTER_HORIZONTAL)
+					.setTextSize(15).setPaddingInPixels(15).setBackgroundColorValue(Style.holoGreenLight).build();
+		} else {
+			style1 = new Style.Builder().setHeight(LayoutParams.WRAP_CONTENT).setGravity(Gravity.CENTER_HORIZONTAL)
+					.setTextSize(15).setPaddingInPixels(15).setBackgroundColorValue(Style.holoBlueLight).build();
+		}
+		Configuration config = new Configuration.Builder().setDuration(timeMilli).build();
+		Crouton.makeText(NewsRssActivity.this, text, style1).setConfiguration(config).show();
+	}
+}

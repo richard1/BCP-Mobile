@@ -18,19 +18,15 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.annotation.SuppressLint;
-import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.ConnectivityManager;
-import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
-import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.view.Gravity;
@@ -46,7 +42,6 @@ import bcp.web.bcpgradebook.lib.DatabaseHandler;
 import bcp.web.bcpgradebook.lib.Grade;
 import bcp.web.bcpgradebook.lib.GradeAdapter;
 
-import com.actionbarsherlock.app.ActionBar;
 import com.actionbarsherlock.app.SherlockFragment;
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuItem;
@@ -87,10 +82,6 @@ public class GradeViewActivity extends SlidingFragmentActivity {
 
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		//setContentView(R.layout.main); // was activity_grade_view
-		
-		//getSupportActionBar().setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM); 
-		//getSupportActionBar().setCustomView(R.layout.action_bar);
 		
 		Bundle humbleBundle = new Bundle();
 		humbleBundle.putBoolean("showSemesterOne", true);
@@ -116,7 +107,6 @@ public class GradeViewActivity extends SlidingFragmentActivity {
 			mContent = getSupportFragmentManager().getFragment(savedInstanceState, "mContent");
 		
 		setContentView(R.layout.main);
-		//getSupportFragmentManager().beginTransaction().add(R.id.main, (Fragment) mContent, "main");
 		sm = getSlidingMenu();
 		sm.setShadowWidthRes(R.dimen.shadow_width);
 		sm.setShadowDrawable(R.drawable.shadow);
@@ -179,14 +169,6 @@ public class GradeViewActivity extends SlidingFragmentActivity {
 		super.onDestroy();
 	}
 	
-	/*
-	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
-		// Inflate the menu; this adds items to the action bar if it is present.
-		getSupportMenuInflater().inflate(R.menu.activity_grade_view, menu);
-		return true;
-	}*/
-	
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		//menu.add("Search").setIcon(R.drawable.world).setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
@@ -195,42 +177,10 @@ public class GradeViewActivity extends SlidingFragmentActivity {
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
-	    // Handle item selection
 	    switch (item.getItemId()) {
 		    case android.R.id.home:
 				toggle();
 				return true;
-		    case R.id.menu_about:	    	
-		    	String about = "By Richard Lin '13\n\nWith help from Jonathan Chang '13, Bryce Pauken '14\n\n" +
-		    			"Based on Bryce's BCP Mobile app for iOS, this app was created to provide Android-loving " +
-		    			"Bellarmine students a convenient way to check their grades, view announcements, and more.\n\n" +
-		    			"If you're enjoying this app, please share this with your friends!";
-		        AlertDialog.Builder builder = new AlertDialog.Builder(GradeViewActivity.this);
-		        builder.setTitle("About");
-		        builder.setMessage(about);
-		        builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-		            public void onClick(DialogInterface dialog, int id) {
-		            }
-		        });
-		        builder.setNegativeButton("View on GitHub", new DialogInterface.OnClickListener() {
-		            public void onClick(DialogInterface dialog, int id) {
-		            	Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/richard1/"));
-		            	startActivity(browserIntent);
-		            }
-		        });
-		        builder.show();
-		        return true;
-		    case R.id.menu_logout:
-		    	db.deleteAll();
-		        getSharedPreferences("username", MODE_PRIVATE).edit().clear().commit();
-		        getSharedPreferences("password", MODE_PRIVATE).edit().clear().commit();
-		        Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
-		        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-		        startActivity(intent);
-		        overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
-		        return true;
-		    case R.id.menu_settings:
-		    	Toast.makeText(getApplicationContext(), "Settings (doesn't do anything)!", Toast.LENGTH_SHORT).show();
 		    default:
 		        return super.onOptionsItemSelected(item);
 	    }
@@ -330,10 +280,13 @@ public class GradeViewActivity extends SlidingFragmentActivity {
 		}
 
 		public void refreshList() {
-			listView = (PullToRefreshListView) getView().findViewById(R.id.listView1);
-			adapter = new GradeAdapter(getActivity(), R.layout.grade_item_row, isSemesterOne ? semesterList1 : semesterList2); // was mainlist
-			listView.setAdapter(adapter);
-			listView.setOnItemClickListener(listener);
+			View view = getView();
+			if(view != null) {
+				listView = (PullToRefreshListView) getView().findViewById(R.id.listView1);
+				adapter = new GradeAdapter(getActivity(), R.layout.grade_item_row, isSemesterOne ? semesterList1 : semesterList2); // was mainlist
+				listView.setAdapter(adapter);
+				listView.setOnItemClickListener(listener);
+			}
 		}
 	}
 

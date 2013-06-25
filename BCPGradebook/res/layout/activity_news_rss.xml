@@ -2,11 +2,15 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".NewsRssActivity" >
+    tools:context=".NewsRssActivity"
+    android:background="@color/bcpDark" >
 
-    <ListView 
-        android:id="@+id/news_list"
-        android:layout_height="fill_parent"
-		android:layout_width="fill_parent" />
+    <com.handmark.pulltorefresh.library.PullToRefreshListView 
+        xmlns:ptr="http://schemas.android.com/apk/res-auto"
+	    android:id="@+id/news_list"
+	    android:layout_height="fill_parent"
+	    android:layout_width="fill_parent"
+	    ptr:ptrHeaderBackground="@color/bcpDark"
+	    ptr:ptrHeaderTextColor="#FFFFFF" />
 
 </RelativeLayout>
