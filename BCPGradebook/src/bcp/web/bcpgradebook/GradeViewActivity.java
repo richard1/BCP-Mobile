@@ -46,6 +46,7 @@ import bcp.web.bcpgradebook.lib.DatabaseHandler;
 import bcp.web.bcpgradebook.lib.Grade;
 import bcp.web.bcpgradebook.lib.GradeAdapter;
 
+import com.actionbarsherlock.app.ActionBar;
 import com.actionbarsherlock.app.SherlockFragment;
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuItem;
@@ -87,7 +88,10 @@ public class GradeViewActivity extends SlidingFragmentActivity {
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		//setContentView(R.layout.main); // was activity_grade_view
-
+		
+		//getSupportActionBar().setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM); 
+		//getSupportActionBar().setCustomView(R.layout.action_bar);
+		
 		Bundle humbleBundle = new Bundle();
 		humbleBundle.putBoolean("showSemesterOne", true);
 		semesterOneFragment = new GradeFragment();
@@ -110,15 +114,9 @@ public class GradeViewActivity extends SlidingFragmentActivity {
 		
 		if (savedInstanceState != null)
 			mContent = getSupportFragmentManager().getFragment(savedInstanceState, "mContent");
-		//if (mContent == null)
-			//mContent = new ColorFragment(R.color.aqua); // was new color frag
 		
 		setContentView(R.layout.main);
 		//getSupportFragmentManager().beginTransaction().add(R.id.main, (Fragment) mContent, "main");
-		//getSupportFragmentManager().beginTransaction().replace(R.id.main, mContent).commit();
-		
-		
-		
 		sm = getSlidingMenu();
 		sm.setShadowWidthRes(R.dimen.shadow_width);
 		sm.setShadowDrawable(R.drawable.shadow);
@@ -136,36 +134,10 @@ public class GradeViewActivity extends SlidingFragmentActivity {
 		mIndicator.setViewPager(mViewPager);
 		//mIndicator.setFooterIndicatorStyle(IndicatorStyle.Triangle);
 				
-		/*
-		mViewPager.setOnPageChangeListener(new OnPageChangeListener() {
-			@Override
-			public void onPageScrollStateChanged(int arg0) { }
-
-			@Override
-			public void onPageScrolled(int arg0, float arg1, int arg2) { }
-
-			@Override
-			public void onPageSelected(int position) {
-				System.out.println("LEPOS: " + position);
-				switch (position) {
-				case 0:
-					getSlidingMenu().setTouchModeAbove(SlidingMenu.TOUCHMODE_FULLSCREEN);
-					break;
-				default:
-					getSlidingMenu().setTouchModeAbove(SlidingMenu.TOUCHMODE_NONE); // was margin
-					break;
-				}
-			}
-
-		});
-		
-		getSlidingMenu().setTouchModeAbove(SlidingMenu.TOUCHMODE_FULLSCREEN);*/
-
-
 		Crouton.cancelAllCroutons();
 		db = new DatabaseHandler(this);
 
-		setTitle("My Courses");
+		setTitle("Grades");
 
 		semesterList1.addAll((ArrayList<Grade>) db.getAllWithSemester(1));
 		semesterList2.addAll((ArrayList<Grade>) db.getAllWithSemester(2));
@@ -207,12 +179,18 @@ public class GradeViewActivity extends SlidingFragmentActivity {
 		super.onDestroy();
 	}
 	
-	
+	/*
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// Inflate the menu; this adds items to the action bar if it is present.
 		getSupportMenuInflater().inflate(R.menu.activity_grade_view, menu);
 		return true;
+	}*/
+	
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		//menu.add("Search").setIcon(R.drawable.world).setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
+		return super.onCreateOptionsMenu(menu);
 	}
 
 	@Override
@@ -551,14 +529,4 @@ public class GradeViewActivity extends SlidingFragmentActivity {
 			return "";
 		}
 	}
-	/*
-	public void switchContent(Fragment fragment) {
-		mViewPager.setVisibility(mViewPager.getVisibility() == ViewPager.VISIBLE ? ViewPager.GONE : ViewPager.VISIBLE);
-		mIndicator.setVisibility(mIndicator.getVisibility() == TitlePageIndicator.VISIBLE ? TitlePageIndicator.GONE : TitlePageIndicator.VISIBLE);
-		Toast.makeText(GradeViewActivity.this, "in GVA switch", Toast.LENGTH_SHORT).show();
-		mContent = fragment;
-		//getSupportFragmentManager().beginTransaction().replace(R.id.main, fragment).commit();
-		getSupportFragmentManager().beginTransaction().show(mContent).commit();
-		getSlidingMenu().showContent();
-	}*/
 }

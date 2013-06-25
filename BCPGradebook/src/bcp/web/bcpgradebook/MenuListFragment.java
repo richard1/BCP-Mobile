@@ -1,7 +1,13 @@
 package bcp.web.bcpgradebook;
 
+import bcp.web.bcpgradebook.lib.DatabaseHandler;
+import android.annotation.SuppressLint;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.ListFragment;
@@ -25,50 +31,95 @@ public class MenuListFragment extends ListFragment {
 	public void onActivityCreated(Bundle savedInstanceState) {
 		super.onActivityCreated(savedInstanceState);
 		adapter = new SampleAdapter(getActivity());
-		//for (int i = 0; i < 20; i++) {
-			adapter.add(new SampleItem("Announcements", R.drawable.icon_announcements));
-			adapter.add(new SampleItem("Grades", R.drawable.icon_grades));
-			adapter.add(new SampleItem("News", R.drawable.icon_news));
-			adapter.add(new SampleItem("About", R.drawable.icon_about));
-			adapter.add(new SampleItem("Log Out", R.drawable.icon_logout));
-			adapter.add(new SampleItem("Rate", R.drawable.icon_rate));
-		//}
+		SharedPreferences userPref = getActivity().getSharedPreferences("username", Context.MODE_PRIVATE);
+		String savedUsername = userPref.getString("username", "");
+		String[] userInfo = getNameFromUsername(savedUsername);
+		adapter.add(new SampleItem(userInfo[0] + " " + userInfo[1] + " '" + userInfo[2], R.drawable.bell));
+		adapter.add(new SampleItem("Grades", R.drawable.book));
+		adapter.add(new SampleItem("Announcements", R.drawable.calendar));
+		adapter.add(new SampleItem("News", R.drawable.speaker));
+		adapter.add(new SampleItem("About", R.drawable.info));
+		adapter.add(new SampleItem("Contact Me", R.drawable.mail));
+		adapter.add(new SampleItem("Rate", R.drawable.heart));
+		adapter.add(new SampleItem("Log Out", R.drawable.directional_left));
 		setListAdapter(adapter);
 	}
 	
 	public void onListItemClick(ListView l, View v, int position, long id) {
         super.onListItemClick(l, v, position, id);
-        Toast.makeText(getActivity(), ((SampleItem)adapter.getItem(position)).tag, Toast.LENGTH_SHORT).show();
         Intent intent;
+        String about;
+        AlertDialog.Builder builder;
 		switch (position) {
-			case 0:
-				intent = new Intent(getActivity(), AnnouncementsActivity.class);
-				startActivity(intent);
-				getActivity().overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
-				break;
-			case 1:
+			case 1: // Grades
 				intent = new Intent(getActivity(), GradeViewActivity.class);
 				intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
 				startActivity(intent);
 				getActivity().overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
 				break;
-			case 2:
+			case 2: // Announcements
+				intent = new Intent(getActivity(), AnnouncementsActivity.class);
+				startActivity(intent);
+				getActivity().overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
+				break;
+			case 3: // News
 				intent = new Intent(getActivity(), NewsRssActivity.class);
 				startActivity(intent);
 				getActivity().overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
 				break;
+			case 4: // About
+	        	about = "By Richard Lin '13\n\nWith help from Jonathan Chang '13, Bryce Pauken '14\n\n" +
+		    			"Based on Bryce's BCP Mobile app for iOS, this app was created to provide Android-loving " +
+		    			"Bellarmine students a convenient way to check their grades, view announcements, and more.\n\n" +
+		    			"If you're enjoying this app, please share this with your friends!";
+		        builder = new AlertDialog.Builder(getActivity());
+		        builder.setTitle("About");
+		        builder.setMessage(about);
+		        builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+		            public void onClick(DialogInterface dialog, int id) {
+		            }
+		        });
+		        builder.setNegativeButton("View on GitHub", new DialogInterface.OnClickListener() {
+		            public void onClick(DialogInterface dialog, int id) {
+		            	Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/richard1/"));
+		            	startActivity(browserIntent);
+		            }
+		        });
+		        builder.show();
+		        break;
+			case 5:
+				Intent emailIntent = new Intent(Intent.ACTION_SENDTO, Uri.fromParts("mailto","richard@team254.com", null));
+				emailIntent.putExtra(Intent.EXTRA_SUBJECT, "BCP Mobile Comment/Question/Suggestion");
+				startActivity(Intent.createChooser(emailIntent, "Send email..."));
+				break;
+			case 6: // Rate
+				about = "If this app has helped you out, feel free to leave a rating on the Google Play Store page. Thanks so much!";
+		        builder = new AlertDialog.Builder(getActivity());
+		        builder.setTitle("Rate");
+		        builder.setMessage(about);
+		        builder.setPositiveButton("Rate", new DialogInterface.OnClickListener() {
+		            public void onClick(DialogInterface dialog, int id) {
+		            	Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://google.com/")); // TODO: replace with link
+		            	startActivity(browserIntent);
+		            }
+		        });
+		        builder.setNegativeButton("Maybe Later", new DialogInterface.OnClickListener() {
+		            public void onClick(DialogInterface dialog, int id) {
+		            }
+		        });
+		        builder.show();
+				break;
+	        case 7:
+	    		new DatabaseHandler(getActivity()).deleteAll();
+	    		getActivity().getSharedPreferences("username", Context.MODE_PRIVATE).edit().clear().commit();
+	    		getActivity().getSharedPreferences("password", Context.MODE_PRIVATE).edit().clear().commit();
+		        intent = new Intent(getActivity(), LoginActivity.class);
+		        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+		        startActivity(intent);
+		        getActivity().overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
+		        break;
 		}
-		//if (newContent != null)
-			//switchFragment(newContent);
     }
-	
-	/*
-	private void switchFragment(Fragment fragment) {
-		if (getActivity() == null)
-			return;
-		GradeViewActivity gva = (GradeViewActivity) getActivity();
-		gva.switchContent(fragment);
-	}*/
 
 	private class SampleItem {
 		public String tag;
@@ -97,5 +148,15 @@ public class MenuListFragment extends ListFragment {
 			return convertView;
 		}
 
+	}
+	
+	@SuppressLint("DefaultLocale")
+	public String[] getNameFromUsername(String username) {
+		String[] names = new String[3];
+		names[0] = username.substring(0, 1).toUpperCase() + username.substring(1, username.indexOf("."));
+		names[1] = username.substring(username.indexOf(".") + 1, username.indexOf(".") + 2).toUpperCase() 
+				+ username.substring(username.indexOf(".") + 2, username.length() - 2);
+		names[2] = username.substring(username.length() - 2, username.length());
+		return names;
 	}
 }

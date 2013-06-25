@@ -13,9 +13,9 @@
 
     <application
         android:allowBackup="true"
-        android:icon="@drawable/bcp_logo"
+        android:icon="@drawable/bell_shield"
         android:label="@string/app_name"
-        android:theme="@style/BCPTheme" >
+        android:theme="@style/AppTheme" >
         <activity
             android:name="bcp.web.bcpgradebook.MainActivity"
             android:configChanges="keyboardHidden|orientation|screenSize"

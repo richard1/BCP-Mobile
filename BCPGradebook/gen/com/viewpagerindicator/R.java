@@ -30,7 +30,7 @@ public final class R {
 	}
 	public static final class color {
 		public static final int vpi__bright_foreground_disabled_holo_dark = 0x7f07000a;
-		public static final int vpi__light_theme = 0x7f07002f;
+		public static final int vpi__light_theme = 0x7f070031;
 		public static final int vpi__background_holo_light = 0x7f070007;
 		public static final int default_title_indicator_text_color = 0x7f070015;
 		public static final int vpi__background_holo_dark = 0x7f070006;
@@ -44,7 +44,7 @@ public final class R {
 		public static final int default_line_indicator_unselected_color = 0x7f070012;
 		public static final int default_underline_indicator_selected_color = 0x7f070016;
 		public static final int vpi__bright_foreground_holo_dark = 0x7f070008;
-		public static final int vpi__dark_theme = 0x7f07002e;
+		public static final int vpi__dark_theme = 0x7f070030;
 		public static final int default_circle_indicator_stroke_color = 0x7f070010;
 		public static final int vpi__bright_foreground_holo_light = 0x7f070009;
 		public static final int default_circle_indicator_page_color = 0x7f07000f;
@@ -99,13 +99,13 @@ public final class R {
 		public static final int LinePageIndicator_centered = 1;
 	}
 	public static final class drawable {
-		public static final int vpi__tab_selected_pressed_holo = 0x7f02008f;
-		public static final int vpi__tab_selected_focused_holo = 0x7f02008d;
-		public static final int vpi__tab_selected_holo = 0x7f02008e;
-		public static final int vpi__tab_unselected_focused_holo = 0x7f020090;
-		public static final int vpi__tab_unselected_holo = 0x7f020091;
-		public static final int vpi__tab_indicator = 0x7f02008c;
-		public static final int vpi__tab_unselected_pressed_holo = 0x7f020092;
+		public static final int vpi__tab_selected_pressed_holo = 0x7f02009d;
+		public static final int vpi__tab_selected_focused_holo = 0x7f02009b;
+		public static final int vpi__tab_selected_holo = 0x7f02009c;
+		public static final int vpi__tab_unselected_focused_holo = 0x7f02009e;
+		public static final int vpi__tab_unselected_holo = 0x7f02009f;
+		public static final int vpi__tab_indicator = 0x7f02009a;
+		public static final int vpi__tab_unselected_pressed_holo = 0x7f0200a0;
 	}
 	public static final class attr {
 		public static final int footerIndicatorStyle = 0x7f010084;

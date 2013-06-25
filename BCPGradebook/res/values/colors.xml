@@ -19,4 +19,6 @@
  <color name="bcpLight2">#6CAEDF</color>
  <color name="bcpLight">#99ACD4</color>
  <color name="bcpDark">#005696</color>
+ <color name="menuDark">#1D3F61</color>
+ <color name="menuLight">#3E73A7</color>
 </resources>
