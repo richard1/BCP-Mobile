@@ -62,13 +62,14 @@ public class LoginActivity extends Activity {
 	private TextView mLoginStatusMessageView;
 	
 	// Other values.
-	private boolean wantsRemember = false;
+	//private boolean wantsRemember = false;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_login);
 		setTitle("Sign in");
+		getActionBar().hide();
 		
 		// Check if logged in already.
 		SharedPreferences passPref = getSharedPreferences("password", MODE_PRIVATE);
@@ -120,13 +121,6 @@ public class LoginActivity extends Activity {
 		if(!isOnline()) {
 			displayCrouton("NO INTERNET CONNECTION", 3000, Style.ALERT);
 		}
-	}
-
-	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
-		super.onCreateOptionsMenu(menu);
-		getMenuInflater().inflate(R.menu.activity_login, menu);
-		return true;
 	}
 	
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -227,12 +221,12 @@ public class LoginActivity extends Activity {
 			mLoginFormView.setVisibility(show ? View.GONE : View.VISIBLE);
 		}
 	}
-	
+	/*
 	public void onCheckboxClicked(View view) {
 	    // Is the view now checked?
 	    boolean checked = ((CheckBox) view).isChecked();
 	    wantsRemember = checked;
-	}
+	}*/
 
 	/**
 	 * Represents an asynchronous login/registration task used to authenticate
@@ -256,12 +250,12 @@ public class LoginActivity extends Activity {
 			showProgress(false);
 
 			if (success) {
-				if(wantsRemember) {
+				//if(wantsRemember) {
 					// Store encrypted password.
 					Editor editorPass = getSharedPreferences("password", MODE_PRIVATE).edit();
 					editorPass.putString("password", mEncryptedPassword);
 					editorPass.commit();
-				}
+				//}
 				
 				// Store username.
 				Editor editorUser = getSharedPreferences("username", MODE_PRIVATE).edit();

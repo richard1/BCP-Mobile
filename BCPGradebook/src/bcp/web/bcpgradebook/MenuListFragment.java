@@ -151,6 +151,9 @@ public class MenuListFragment extends ListFragment {
 	@SuppressLint("DefaultLocale")
 	public String[] getNameFromUsername(String username) {
 		String[] names = new String[3];
+		if(username.contains("@")) { // if people log in with email address
+			username = username.substring(0, username.indexOf("@"));
+		}
 		names[0] = username.substring(0, 1).toUpperCase() + username.substring(1, username.indexOf("."));
 		names[1] = username.substring(username.indexOf(".") + 1, username.indexOf(".") + 2).toUpperCase() 
 				+ username.substring(username.indexOf(".") + 2, username.length() - 2);
