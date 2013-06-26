@@ -34,8 +34,9 @@ public class MenuListFragment extends ListFragment {
 		String[] userInfo = getNameFromUsername(savedUsername);
 		adapter.add(new SampleItem(userInfo[0] + " " + userInfo[1] + " '" + userInfo[2], R.drawable.bell));
 		adapter.add(new SampleItem("Grades", R.drawable.book));
-		adapter.add(new SampleItem("Announcements", R.drawable.calendar));
-		adapter.add(new SampleItem("News", R.drawable.speaker));
+		adapter.add(new SampleItem("Announcements", R.drawable.speaker));
+		adapter.add(new SampleItem("Calendar", R.drawable.calendar));
+		adapter.add(new SampleItem("News", R.drawable.world));
 		adapter.add(new SampleItem("About", R.drawable.info));
 		adapter.add(new SampleItem("Contact Me", R.drawable.mail));
 		adapter.add(new SampleItem("Rate", R.drawable.heart));
@@ -60,13 +61,18 @@ public class MenuListFragment extends ListFragment {
 				startActivity(intent);
 				getActivity().overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
 				break;
-			case 3: // News
+			case 3: // Calendar
+				intent = new Intent(getActivity(), CalendarActivity.class);
+				startActivity(intent);
+				getActivity().overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
+				break;
+			case 4: // News
 				intent = new Intent(getActivity(), NewsRssActivity.class);
 				startActivity(intent);
 				getActivity().overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
 				break;
-			case 4: // About
-	        	about = "By Richard Lin '13\n\nWith help from Jonathan Chang '13, Bryce Pauken '14\n\n" +
+			case 5: // About
+	        	about = "By Richard Lin '13 and Jonathan Chang '13\n\nWith help from Bryce Pauken '14\n\n" +
 		    			"Based on Bryce's BCP Mobile app for iOS, this app was created to provide Android-loving " +
 		    			"Bellarmine students a convenient way to check their grades, view announcements, and more.\n\n" +
 		    			"If you're enjoying this app, please share this with your friends!";
@@ -85,12 +91,12 @@ public class MenuListFragment extends ListFragment {
 		        });
 		        builder.show();
 		        break;
-			case 5:
+			case 6:
 				Intent emailIntent = new Intent(Intent.ACTION_SENDTO, Uri.fromParts("mailto","richard@team254.com", null));
 				emailIntent.putExtra(Intent.EXTRA_SUBJECT, "BCP Mobile Comment/Question/Suggestion");
 				startActivity(Intent.createChooser(emailIntent, "Send email..."));
 				break;
-			case 6: // Rate
+			case 7: // Rate
 				about = "If this app has helped you out, feel free to leave a rating on the Google Play Store page. Thanks so much!";
 		        builder = new AlertDialog.Builder(getActivity());
 		        builder.setTitle("Rate");
@@ -107,7 +113,7 @@ public class MenuListFragment extends ListFragment {
 		        });
 		        builder.show();
 				break;
-	        case 7:
+	        case 8:
 	    		new DatabaseHandler(getActivity()).deleteAll();
 	    		getActivity().getSharedPreferences("username", Context.MODE_PRIVATE).edit().clear().commit();
 	    		getActivity().getSharedPreferences("password", Context.MODE_PRIVATE).edit().clear().commit();

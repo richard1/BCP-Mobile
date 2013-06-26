@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout 
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" 
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:padding="10dp"
+    android:background="#FFFFFF" >
+	
+	<TextView
+	    android:id="@+id/event_title"
+	    android:layout_width="fill_parent"
+	    android:layout_height="fill_parent"
+	    android:gravity="center_vertical"
+	    android:textStyle="bold"
+		android:textSize="18dp"
+		android:layout_marginTop="5dp" />
+	
+	<TextView
+	    android:layout_width="fill_parent"
+	    android:layout_height="fill_parent"
+	    android:id="@+id/event_date"
+	    android:textSize="16dp"
+	    android:singleLine="true"
+	    android:ellipsize="marquee" 
+	    android:textStyle="italic" />
+</LinearLayout>

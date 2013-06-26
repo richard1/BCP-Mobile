@@ -398,7 +398,7 @@ public class GradeViewActivity extends SlidingFragmentActivity {
 		JSONArray sem1 = data.getJSONArray("semester1");
 		for(int i = 0; i < sem1.length(); i++) {
 			JSONObject row = sem1.getJSONObject(i);
-			if(!row.getString("class").equals("Homeroom")) {
+			if(!row.getString("class").equals("Homeroom") && row.getString("percentage") != null && !row.getString("percentage").equals("null")) {
 				String percent = row.getString("percentage");
 				String extraText = "";
 				if(!percentMap.isEmpty()) {

@@ -15,5 +15,6 @@
     <string name="courseid">id</string>
     <string name="title_activity_announcements">AnnouncementsActivity</string>
     <string name="title_activity_news_rss">NewsRssActivity</string>
+    <string name="title_activity_calendar">CalendarActivity</string>
 
 </resources>

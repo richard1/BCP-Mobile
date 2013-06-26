@@ -42,13 +42,18 @@
         </activity>
         <activity
             android:name="bcp.web.bcpgradebook.AnnouncementsActivity"
-            android:label="@string/title_activity_announcements" 
-            android:configChanges="keyboardHidden|orientation|screenSize" >
+            android:configChanges="keyboardHidden|orientation|screenSize"
+            android:label="@string/title_activity_announcements" >
         </activity>
         <activity
             android:name="bcp.web.bcpgradebook.NewsRssActivity"
-            android:label="@string/title_activity_news_rss"
-            android:configChanges="keyboardHidden|orientation|screenSize" >
+            android:configChanges="keyboardHidden|orientation|screenSize"
+            android:label="@string/title_activity_news_rss" >
+        </activity>
+        <activity
+            android:name="bcp.web.bcpgradebook.CalendarActivity"
+            android:configChanges="keyboardHidden|orientation|screenSize"
+            android:label="@string/title_activity_calendar" >
         </activity>
     </application>
 
