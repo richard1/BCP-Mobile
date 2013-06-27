@@ -390,34 +390,38 @@ public class GradeViewActivity extends SlidingFragmentActivity {
 			displayCrouton("AN ERROR OCCURRED, PLEASE TRY AGAIN LATER [" + error + "]", 3000, Style.ALERT);
 			return;
 		}
-
-		HashMap<String, String> percentMap = db.getPercentTitleMap(1);
-		System.out.println("MAP: " + percentMap.toString()); // TODO: check if key exists
-
-		JSONObject data = result.getJSONObject("data");
-		JSONArray sem1 = data.getJSONArray("semester1");
-		for(int i = 0; i < sem1.length(); i++) {
-			JSONObject row = sem1.getJSONObject(i);
-			if(!row.getString("class").equals("Homeroom") && row.getString("percentage") != null && !row.getString("percentage").equals("null")) {
-				String percent = row.getString("percentage");
-				String extraText = "";
-				if(!percentMap.isEmpty()) {
-					String courseName = row.getString("class");
-					System.out.println("looking for: " + courseName + "\n" + percentMap.get(courseName));
-					double oldPercent = Double.parseDouble(percentMap.get(courseName).replaceAll("%", ""));
-					double newPercent = Double.parseDouble(percent.replaceAll("%", ""));
-					System.out.println(newPercent + " - " + oldPercent + " = " + (newPercent - oldPercent));
-					extraText += "   " + (newPercent < oldPercent ? "" : "+") 
-							+ decimalFormat.format((newPercent - oldPercent)) + "%";
+		
+		for(int iter = 0; iter < 2; iter++)
+		{
+			HashMap<String, String> percentMap = db.getPercentTitleMap(iter+1);
+			System.out.println("MAP: " + percentMap.toString()); // TODO: check if key exists
+	
+			JSONObject data = result.getJSONObject("data");
+			JSONArray sem = iter == 0 ? data.getJSONArray("semester1") : data.getJSONArray("semester2");
+			ArrayList<Grade> activeList = iter == 0 ? semesterList1 : semesterList2;
+			for(int i = 0; i < sem.length(); i++) {
+				JSONObject row = sem.getJSONObject(i);
+				if(!row.getString("class").equals("Homeroom") && row.getString("percentage") != null && !row.getString("percentage").equals("null")) {
+					String percent = row.getString("percentage");
+					String extraText = "";
+					if(!percentMap.isEmpty()) {
+						String courseName = row.getString("class");
+						System.out.println("looking for: " + courseName + "\n" + percentMap.get(courseName));
+						double oldPercent = Double.parseDouble(percentMap.get(courseName).replaceAll("%", ""));
+						double newPercent = Double.parseDouble(percent.replaceAll("%", ""));
+						System.out.println(newPercent + " - " + oldPercent + " = " + (newPercent - oldPercent));
+						extraText += "   " + (newPercent < oldPercent ? "" : "+") 
+								+ decimalFormat.format((newPercent - oldPercent)) + "%";
+					}
+	
+					Grade grade = new Grade(getIdFromGrade(row.getString("grade")), row.getString("class"), percent, 1);
+					grade.addExtraText(extraText);
+					activeList.add(grade);
 				}
-
-				Grade grade = new Grade(getIdFromGrade(row.getString("grade")), row.getString("class"), percent, 1);
-				grade.addExtraText(extraText);
-				semesterList1.add(grade);
 			}
 		}
 
-		percentMap = db.getPercentTitleMap(2);
+		/*percentMap = db.getPercentTitleMap(2);
 		System.out.println("MAP: " + percentMap.toString());
 
 		JSONArray sem2 = data.getJSONArray("semester2");
@@ -440,7 +444,7 @@ public class GradeViewActivity extends SlidingFragmentActivity {
 				grade.addExtraText(extraText);
 				semesterList2.add(grade);
 			}
-		}
+		}*/
 		db.deleteAll();
 		for(Grade g : semesterList1) {
 			db.add(g);
