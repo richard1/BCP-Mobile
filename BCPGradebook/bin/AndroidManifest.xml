@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="bcp.web.bcpgradebook"
+    package="org.bcp.mobile"
     android:versionCode="1"
     android:versionName="1.0" >
 
@@ -17,21 +17,21 @@
         android:label="@string/app_name"
         android:theme="@style/AppTheme" >
         <activity
-            android:name="bcp.web.bcpgradebook.MainActivity"
+            android:name="org.bcp.mobile.MainActivity"
             android:configChanges="keyboardHidden|orientation|screenSize"
             android:label="@string/app_name" >
         </activity>
         <activity
-            android:name="bcp.web.bcpgradebook.GradeViewActivity"
+            android:name="org.bcp.mobile.GradeViewActivity"
             android:configChanges="keyboardHidden|orientation|screenSize"
             android:label="@string/title_activity_grade_view" >
         </activity>
         <activity
-            android:name="bcp.web.bcpgradebook.CourseDetailActivity"
+            android:name="org.bcp.mobile.CourseDetailActivity"
             android:label="@string/title_activity_course_detail" >
         </activity>
         <activity
-            android:name="bcp.web.bcpgradebook.LoginActivity"
+            android:name="org.bcp.mobile.LoginActivity"
             android:label="@string/app_name"
             android:windowSoftInputMode="adjustResize|stateUnchanged" >
             <intent-filter>
@@ -41,17 +41,17 @@
             </intent-filter>
         </activity>
         <activity
-            android:name="bcp.web.bcpgradebook.AnnouncementsActivity"
+            android:name="org.bcp.mobile.AnnouncementsActivity"
             android:configChanges="keyboardHidden|orientation|screenSize"
             android:label="@string/title_activity_announcements" >
         </activity>
         <activity
-            android:name="bcp.web.bcpgradebook.NewsRssActivity"
+            android:name="org.bcp.mobile.NewsRssActivity"
             android:configChanges="keyboardHidden|orientation|screenSize"
             android:label="@string/title_activity_news_rss" >
         </activity>
         <activity
-            android:name="bcp.web.bcpgradebook.CalendarActivity"
+            android:name="org.bcp.mobile.CalendarActivity"
             android:configChanges="keyboardHidden|orientation|screenSize"
             android:label="@string/title_activity_calendar" >
         </activity>
