@@ -8,6 +8,7 @@ import java.io.Reader;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.net.HttpURLConnection;
+import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
@@ -343,17 +344,20 @@ public class GradeViewActivity extends SlidingFragmentActivity {
 					return "No connection";
 				}
 				loadGradesFromNetwork(urls[0]);
-				return "Success";
+				return "SUCCESS";
+			} catch(SocketTimeoutException e) {
+				e.printStackTrace();
+				return "STE";
 			} catch(IOException e) {
 				e.printStackTrace();
-				return getResources().getString(R.string.connection_error);
+				return "IOE";
 			} catch(JSONException e) {
 				e.printStackTrace();
-				return getResources().getString(R.string.json_error) + e.toString();
+				return "JSONE";
 			} catch(Exception e) {
 				System.out.println("ATTENTION\nERROR\nHEREITIS\n"+e.toString());
 				e.printStackTrace();
-				return "Unknown Exception!: " + e.toString();
+				return "E";
 			}
 		}
 
@@ -365,7 +369,15 @@ public class GradeViewActivity extends SlidingFragmentActivity {
 			} else {
 				semesterOneFragment.refreshList();
 				semesterTwoFragment.refreshList();
-				displayCrouton("UPDATED", 1000, Style.INFO);
+				if(result.equals("SUCCESS")) {
+					displayCrouton("UPDATED", 1000, Style.INFO);
+				}
+				else if(result.equals("STE")) {
+					displayCrouton("SERVER TIMED OUT - PLEASE TRY AGAIN LATER", 5000, Style.ALERT);
+				}
+				else {
+					displayCrouton("UNEXPECTED ERROR - " + result, 5000, Style.ALERT);
+				}
 			}
 			progress.dismiss();
 			semesterOneFragment.listView.onRefreshComplete();
@@ -416,37 +428,12 @@ public class GradeViewActivity extends SlidingFragmentActivity {
 								+ decimalFormat.format((newPercent - oldPercent)) + "%";
 					}
 	
-					Grade grade = new Grade(getIdFromGrade(row.getString("grade")), row.getString("class"), percent, 1);
+					Grade grade = new Grade(getIdFromGrade(row.getString("grade")), row.getString("class"), percent, iter + 1);
 					grade.addExtraText(extraText);
 					activeList.add(grade);
 				}
 			}
 		}
-
-		/*percentMap = db.getPercentTitleMap(2);
-		System.out.println("MAP: " + percentMap.toString());
-
-		JSONArray sem2 = data.getJSONArray("semester2");
-		for(int i = 0; i < sem2.length(); i++) {
-			JSONObject row = sem2.getJSONObject(i);
-			if(!row.getString("class").equals("Homeroom")) {
-				String percent = row.getString("percentage");
-				String extraText = "";
-				if(!percentMap.isEmpty()) {
-					String courseName = row.getString("class");
-					System.out.println("looking for: " + courseName + "\n" + percentMap.get(courseName));
-					double oldPercent = Double.parseDouble(percentMap.get(courseName).replaceAll("%", ""));
-					double newPercent = Double.parseDouble(percent.replaceAll("%", ""));
-					System.out.println(newPercent + " - " + oldPercent + " = " + (newPercent - oldPercent));
-					extraText += "   " + (newPercent < oldPercent ? "" : "+") 
-							+ decimalFormat.format((newPercent - oldPercent)) + "%";
-				}
-
-				Grade grade = new Grade(getIdFromGrade(row.getString("grade")), row.getString("class"), percent, 2);
-				grade.addExtraText(extraText);
-				semesterList2.add(grade);
-			}
-		}*/
 		db.deleteAll();
 		for(Grade g : semesterList1) {
 			db.add(g);
@@ -456,7 +443,7 @@ public class GradeViewActivity extends SlidingFragmentActivity {
 		}
 	}
 
-	private InputStream downloadUrl(String urlString) throws IOException {
+	private InputStream downloadUrl(String urlString) throws IOException, SocketTimeoutException {
 		URL url = new URL(urlString);
 		conn = (HttpURLConnection)url.openConnection();
 		conn.setReadTimeout(10000 /* milliseconds */);
