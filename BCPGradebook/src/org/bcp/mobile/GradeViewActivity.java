@@ -219,7 +219,8 @@ public class GradeViewActivity extends SlidingFragmentActivity {
 		else if(grade.equals("D+")) return R.drawable.grade_dplus;
 		else if(grade.equals("D")) return R.drawable.grade_d;
 		else if(grade.equals("D-")) return R.drawable.grade_dminus;
-		return R.drawable.grade_f;
+		else if(grade.equals("F")) return R.drawable.grade_f;
+		return R.drawable.error;
 	}
 
 	public void displayCrouton(String text, int timeMilli, Style style) {

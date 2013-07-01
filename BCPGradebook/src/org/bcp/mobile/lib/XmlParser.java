@@ -25,7 +25,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * This class parses XML feeds from stackoverflow.com.
+ * This class parses XML feeds from the Bellarmine news site.
  * Given an InputStream representation of a feed, it returns a List of entries,
  * where each list element represents a single entry (post) in the XML feed.
  */
