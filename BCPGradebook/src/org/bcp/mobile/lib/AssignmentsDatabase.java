@@ -115,8 +115,19 @@ public class AssignmentsDatabase extends SQLiteOpenHelper {
         Cursor cursor = db.rawQuery(selectQuery, null);
  
         // looping through all rows and adding to list
+        boolean addedAsgHeader = false, addedCatHeader = false;
         if (cursor.moveToFirst()) {
             do {
+            	if(!addedAsgHeader && cursor.getString(1).equals("Asg")) {
+            		System.out.println("asdf ADDING ASG HEADER");
+            		assignmentList.add(new SectionItem("Assignments"));
+            		addedAsgHeader = true;
+            	}
+            	if(!addedCatHeader && cursor.getString(1).equals("Cat")) {
+            		System.out.println("asdf ADDING CAT HEADER");
+            		assignmentList.add(new SectionItem("Categories"));
+            		addedCatHeader = true;
+            	}
             	Assignment assignment = new Assignment(
                         cursor.getString(1), cursor.getString(2), cursor.getString(3), 
                         cursor.getString(4), cursor.getString(5), Double.parseDouble(cursor.getString(6)), 
@@ -140,8 +151,17 @@ public class AssignmentsDatabase extends SQLiteOpenHelper {
         Cursor cursor = db.rawQuery(selectQuery, null);
  
         // looping through all rows and adding to list
+        boolean addedAsgHeader = false, addedCatHeader = false;
         if (cursor.moveToFirst()) {
             do {
+            	if(!addedAsgHeader && cursor.getString(1).equals("Asg")) {
+            		assignmentList.add(new SectionItem("Assignments"));
+            		addedAsgHeader = true;
+            	}
+            	if(!addedCatHeader && cursor.getString(1).equals("Cat")) {
+            		assignmentList.add(new SectionItem("Categories"));
+            		addedCatHeader = true;
+            	}
             	Assignment assignment = new Assignment(
                         cursor.getString(1), cursor.getString(2), cursor.getString(3), 
                         cursor.getString(4), cursor.getString(5), Double.parseDouble(cursor.getString(6)), 

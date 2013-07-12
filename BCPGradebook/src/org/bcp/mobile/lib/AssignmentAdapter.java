@@ -44,7 +44,6 @@ public class AssignmentAdapter extends ArrayAdapter<Item> {
 		if (i != null) {
 			if(i.isSection()) {
 				SectionItem si = (SectionItem)i;
-				System.out.println("ASDF NEW SECTION: " + si.getTitle());
 				v = inflater.inflate(R.layout.list_item_section, null);
 
 				v.setOnClickListener(null);

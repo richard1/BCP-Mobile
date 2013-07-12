@@ -32,8 +32,15 @@ public class CourseDetailActivity extends ListActivity {
 			DecimalFormat decimalFormat = new DecimalFormat("##0.##");
 			Assignment asg = (Assignment) adapter.getItem(position);
 			String title = asg.name;
-			String detail = "Score: " + decimalFormat.format(asg.score) + " / " + decimalFormat.format(asg.total) + "\nPercentage: " +
-					asg.percent + "\nGrade: " + asg.letter + "\n\nCategory: " + asg.category + "\nDue Date: " + asg.date;
+			String detail = "";
+			if(asg.type.equals("Cat")) {
+				detail = "Score: " + decimalFormat.format(asg.score) + " / " + decimalFormat.format(asg.total) + "\nPercentage: " +
+						asg.percent + "\nGrade: " + asg.letter + "\n\nWeight: " + asg.weight + "%";
+			}
+			else {
+				detail = "Score: " + decimalFormat.format(asg.score) + " / " + decimalFormat.format(asg.total) + "\nPercentage: " +
+						asg.percent + "\nGrade: " + asg.letter + "\n\nCategory: " + asg.category + "\nDue Date: " + asg.date;
+			}
 	        AlertDialog.Builder builder = new AlertDialog.Builder(CourseDetailActivity.this);
 	        builder.setTitle(title);
 	        builder.setMessage(detail);
@@ -65,7 +72,6 @@ public class CourseDetailActivity extends ListActivity {
 		
 		adb = new AssignmentsDatabase(this);
 		List<Item> asgs = adb.getAllWithSemesterAndCourse(semester, title);
-		listContent.add(new SectionItem("Assignments"));
 		listContent.addAll(asgs);
 		
 		adapter = new AssignmentAdapter(this, R.layout.course_item_row, listContent);

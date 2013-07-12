@@ -270,7 +270,6 @@ public class GradeViewActivity extends SlidingFragmentActivity {
 				public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 					String title = ((Grade)adapter.getItem(position - 1)).title; // subtracting 1 to get correct index
 					int semester = ((Grade)adapter.getItem(position - 1)).semester;
-					Toast.makeText(getApplicationContext(), "Item #: " + position, Toast.LENGTH_SHORT).show();
 					Intent intent = new Intent(getBaseContext(), CourseDetailActivity.class);
 					intent.putExtra(COURSE_ID, "Item #: " + position);
 					intent.putExtra("title", title);
@@ -450,7 +449,6 @@ public class GradeViewActivity extends SlidingFragmentActivity {
 					if(assignments != null) {
 						for(int j = 0; j < assignments.length(); j++) {
 							JSONObject row2 = assignments.getJSONObject(j);
-							System.out.println("JSON ASG: " + row2.toString());
 							double score = 0.0;
 							if(row2.getString("score") != null && row2.getString("score").length() > 0 && !row2.getString("score").equals("X")) {
 								score = Double.parseDouble(row2.getString("score")); // TODO: change db score to double
@@ -459,7 +457,7 @@ public class GradeViewActivity extends SlidingFragmentActivity {
 							double total = Double.parseDouble(row2.getString("total")); // TODO change db total to double
 							String percentage = "";
 							if(total <= 0) {
-								percentage = "EXTRA CREDIT";
+								percentage = "Extra Credit";
 							}
 							else {
 								percentage = decimalFormat.format( ((double)score) / ((double)total) * 100.0) + "%";
@@ -471,7 +469,23 @@ public class GradeViewActivity extends SlidingFragmentActivity {
 						}
 					}
 					
-					// TODO: categories
+					JSONArray cats = row.optJSONArray("categories");
+					if(cats != null) {
+						for(int j = 0; j < cats.length(); j++) {
+							JSONObject row2 = cats.getJSONObject(j);
+							String rawScore = row2.getString("score");
+							String letter = row2.getString("letter");
+							double score = Double.parseDouble(rawScore.substring(0, rawScore.indexOf(" ")));
+							double total = Double.parseDouble(rawScore.substring(rawScore.indexOf("/") + 2, rawScore.length()));
+							if(total <= 0) {
+								letter = "A+";
+							}
+							String percentage = row2.getString("percent") + "%";
+							Assignment asg = new Assignment("Cat", row.getString("class"), row2.getString("name"), 
+									"", "", score, total, letter, percentage, iter + 1, row2.getString("weight"));
+							assignmentList.add(asg);
+						}
+					}
 				}
 			}
 		}
