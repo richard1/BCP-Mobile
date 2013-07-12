@@ -196,7 +196,7 @@ public class MenuListFragment extends ListFragment {
         image.setLayoutParams(new TableRow.LayoutParams(254, 254)); // :)
         toastLayout.addView(image);
         ImageToast.setView(toastLayout);
-        ImageToast.setDuration(Toast.LENGTH_LONG);
+        ImageToast.setDuration(Toast.LENGTH_SHORT);
         ImageToast.setGravity(Gravity.CENTER, 0, 0);
         ImageToast.show();
 	    if(toast != null) {

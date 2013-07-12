@@ -22,6 +22,7 @@ import de.keyboardsurfer.android.widget.crouton.Style;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
+import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Context;
@@ -131,6 +132,7 @@ public class LoginActivity extends Activity {
 	    return cm.getActiveNetworkInfo() != null && cm.getActiveNetworkInfo().isConnectedOrConnecting();
 	}
 
+	@SuppressLint("DefaultLocale")
 	public void attemptLogin() {
 		if (mAuthTask != null) {
 			return;
@@ -146,7 +148,7 @@ public class LoginActivity extends Activity {
 		mPasswordView.setError(null);
 
 		// Store values at the time of the login attempt.
-		mEmail = mEmailView.getText().toString();
+		mEmail = mEmailView.getText().toString().toLowerCase();
 		if(!mEmail.contains("@")) {
 			mEmail += "@bcp.org";
 		}
