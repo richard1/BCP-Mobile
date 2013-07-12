@@ -449,6 +449,7 @@ public class GradeViewActivity extends SlidingFragmentActivity {
 					if(assignments != null) {
 						for(int j = 0; j < assignments.length(); j++) {
 							JSONObject row2 = assignments.getJSONObject(j);
+							String letter = row2.getString("letter");
 							double score = 0.0;
 							if(row2.getString("score") != null && row2.getString("score").length() > 0 && !row2.getString("score").equals("X")) {
 								score = Double.parseDouble(row2.getString("score")); // TODO: change db score to double
@@ -458,13 +459,14 @@ public class GradeViewActivity extends SlidingFragmentActivity {
 							String percentage = "";
 							if(total <= 0) {
 								percentage = "Extra Credit";
+								letter = "A+";
 							}
 							else {
 								percentage = decimalFormat.format( ((double)score) / ((double)total) * 100.0) + "%";
 							}
 							Assignment asg = new Assignment("Asg", row.getString("class"), row2.getString("name"), 
 									row2.getString("date"), row2.getString("category"), score,
-									total, row2.getString("letter"), percentage, iter + 1, "");
+									total, letter, percentage, iter + 1, "");
 							assignmentList.add(asg);
 						}
 					}

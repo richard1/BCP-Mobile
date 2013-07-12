@@ -53,7 +53,12 @@ public class NewsAdapter extends ArrayAdapter<News> {
         News news = data[position];
 
         holder.title.setText(news.title);
-        holder.date.setText("Posted on " + news.date.substring(0, news.date.indexOf(":") - 3));
+        if(news.date.contains(":")) {
+        	holder.date.setText("Posted on " + news.date.substring(0, news.date.indexOf(":") - 3));
+        }
+        else {
+        	holder.date.setText(news.date);
+        }
         return row;
     }
     

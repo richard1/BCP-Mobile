@@ -3,6 +3,10 @@ package org.bcp.mobile;
 import org.bcp.mobile.lib.DatabaseHandler;
 
 import org.bcp.mobile.R;
+
+import de.keyboardsurfer.android.widget.crouton.Configuration;
+import de.keyboardsurfer.android.widget.crouton.Crouton;
+import de.keyboardsurfer.android.widget.crouton.Style;
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.Context;
@@ -12,17 +16,24 @@ import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.ListFragment;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewGroup.LayoutParams;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.TableRow;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class MenuListFragment extends ListFragment {
 	
 	SampleAdapter adapter;
+	Toast toast;
+	int easterEgg = 0;
 
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 		return inflater.inflate(R.layout.list, null);
@@ -52,6 +63,13 @@ public class MenuListFragment extends ListFragment {
         String about;
         AlertDialog.Builder builder;
 		switch (position) {
+			case 0:
+				easterEgg++;
+				if(easterEgg >= 7) { // tap name 7 times for easter egg.
+					displayToast();
+					easterEgg = 0;
+				}
+				break;
 			case 1: // Grades
 				intent = new Intent(getActivity(), GradeViewActivity.class);
 				intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
@@ -74,7 +92,7 @@ public class MenuListFragment extends ListFragment {
 				getActivity().overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
 				break;
 			case 5: // About
-	        	about = "By Richard Lin '13 and Jonathan Chang '13\n\nWith help from Bryce Pauken '14\n\n" +
+	        	about = "By Richard Lin '13, with help from Jonathan Chang '13\n\nInspired by Bryce Pauken '14\n\n" +
 		    			"Based on Bryce's BCP Mobile app for iOS, this app was created to provide Android-loving " +
 		    			"Bellarmine students a convenient way to check their grades, view announcements, and more.\n\n" +
 		    			"If you're enjoying this app, please share this with your friends!";
@@ -167,5 +185,31 @@ public class MenuListFragment extends ListFragment {
 				+ username.substring(username.indexOf(".") + 2, username.length() - 2);
 		names[2] = username.substring(username.length() - 2, username.length());
 		return names;
+	}
+	
+	public void displayToast() {
+		Toast ImageToast = new Toast(getActivity());
+        LinearLayout toastLayout = new LinearLayout(getActivity());
+        toastLayout.setOrientation(LinearLayout.HORIZONTAL);
+        ImageView image = new ImageView(getActivity());
+        image.setImageResource(R.drawable.bell_shield);
+        image.setLayoutParams(new TableRow.LayoutParams(254, 254)); // :)
+        toastLayout.addView(image);
+        ImageToast.setView(toastLayout);
+        ImageToast.setDuration(Toast.LENGTH_LONG);
+        ImageToast.setGravity(Gravity.CENTER, 0, 0);
+        ImageToast.show();
+	    if(toast != null) {
+	        toast.cancel();
+	    }
+	    toast = ImageToast;
+	    toast.show();
+	}
+	
+	public void onPause() {
+	    if(toast != null) {
+	        toast.cancel();
+	    }
+	    super.onPause();
 	}
 }

@@ -3,17 +3,18 @@ package org.bcp.mobile;
 import java.util.ArrayList;
 
 import org.bcp.mobile.R;
+import org.bcp.mobile.lib.News;
+import org.bcp.mobile.lib.NewsAdapter;
 
 import com.actionbarsherlock.view.MenuItem;
 import com.jeremyfeinstein.slidingmenu.lib.SlidingMenu;
 import com.jeremyfeinstein.slidingmenu.lib.app.SlidingFragmentActivity;
 
-import android.app.AlertDialog;
-import android.content.DialogInterface;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.AdapterView.OnItemClickListener;
 
@@ -21,21 +22,14 @@ public class AnnouncementsActivity extends SlidingFragmentActivity {
 	MenuListFragment mFrag;
 	SlidingMenu sm;
 	private ListView myList;
-	private ArrayAdapter<String> adapter;
-	private ArrayList<String> listContent = new ArrayList<String>();
+	private NewsAdapter adapter;
+	private ArrayList<News> listContent = new ArrayList<News>();
 	OnItemClickListener listener = new OnItemClickListener() {
 		@Override
 		public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-			String title = adapter.getItem(position);
-			String detail = "TODO: this goes to the BCP announcements page"; // TODO: redirect to BCP page
-	        AlertDialog.Builder builder = new AlertDialog.Builder(AnnouncementsActivity.this);
-	        builder.setTitle(title);
-	        builder.setMessage(detail);
-	        builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-	            public void onClick(DialogInterface dialog, int id) {
-	            }
-	        });
-	        builder.show();
+			String url = "http://www.bcp.org/students/student-life/daily-announcements/index.aspx";
+			Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+        	startActivity(browserIntent);
 		}
 	};
 
@@ -62,14 +56,13 @@ public class AnnouncementsActivity extends SlidingFragmentActivity {
 
 		getActionBar().setDisplayHomeAsUpEnabled(true);
 		
-		listContent.add("Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.");
-		listContent.add("Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt.");
-		listContent.add("Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet");
-		listContent.add("Ut enim ad minima veniam, quis nostrum exercitationem ullam corporis suscipit laboriosam, nisi ut aliquid ex ea commodi consequatur? Quis autem vel eum iure reprehenderit qui in ea voluptate velit esse quam nihil molestiae consequatur, vel illum qui dolorem eum fugiat quo voluptas nulla pariatur?");
+		listContent.add(new News("Hey, these don't look like announcements. Give me my announcements!", "", "You're right, these aren't the announcements you're looking for.  The announcements feature is currently under development and will most likely be implemented a week or two into the school year."));
+		listContent.add(new News("But where can I check the announcements in the meantime?", "", "Just click here to open the announcements in your phone's browser."));
+		listContent.add(new News("You're awesome! How can I ever repay you?", "", "Glad to be of help! I'd appreciate it if you could rate this app on the Google Play Store. Check the sidebar for the link."));
 		
 		//android.R.layout.simple_list_item_1
 		myList = (ListView) findViewById(R.id.announcements_list);
-		adapter = new ArrayAdapter<String>(this, R.layout.course_item_row, listContent);
+		adapter = new NewsAdapter(this, R.layout.news_row, listContent);
 		myList.setAdapter(adapter);
 		myList.setOnItemClickListener(listener);
 	}
