@@ -15,16 +15,21 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
 
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.bcp.mobile.lib.Assignment;
 import org.bcp.mobile.lib.AssignmentsDatabase;
 import org.bcp.mobile.lib.DatabaseHandler;
 import org.bcp.mobile.lib.Grade;
 import org.bcp.mobile.lib.GradeAdapter;
 import org.bcp.mobile.lib.Item;
-import org.bcp.mobile.lib.SectionItem;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Entities.EscapeMode;
+import org.jsoup.safety.Cleaner;
+import org.jsoup.safety.Whitelist;
 
 import android.annotation.SuppressLint;
 import android.app.ProgressDialog;
@@ -46,7 +51,6 @@ import android.view.ViewGroup.LayoutParams;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ListView;
-import android.widget.Toast;
 import org.bcp.mobile.R;
 
 import com.actionbarsherlock.app.SherlockFragment;
@@ -452,10 +456,10 @@ public class GradeViewActivity extends SlidingFragmentActivity {
 							String letter = row2.getString("letter");
 							double score = 0.0;
 							if(row2.getString("score") != null && row2.getString("score").length() > 0 && !row2.getString("score").equals("X")) {
-								score = Double.parseDouble(row2.getString("score")); // TODO: change db score to double
+								score = Double.parseDouble(row2.getString("score"));
 							}
 							
-							double total = Double.parseDouble(row2.getString("total")); // TODO change db total to double
+							double total = Double.parseDouble(row2.getString("total"));
 							String percentage = "";
 							if(total <= 0) {
 								percentage = "Extra Credit";
@@ -464,7 +468,8 @@ public class GradeViewActivity extends SlidingFragmentActivity {
 							else {
 								percentage = decimalFormat.format( ((double)score) / ((double)total) * 100.0) + "%";
 							}
-							Assignment asg = new Assignment("Asg", row.getString("class"), row2.getString("name"), 
+							String cleanedName = StringEscapeUtils.unescapeHtml4(row2.getString("name"));
+							Assignment asg = new Assignment("Asg", row.getString("class"), cleanedName, 
 									row2.getString("date"), row2.getString("category"), score,
 									total, letter, percentage, iter + 1, "");
 							assignmentList.add(asg);
@@ -482,8 +487,9 @@ public class GradeViewActivity extends SlidingFragmentActivity {
 							if(total <= 0) {
 								letter = "A+";
 							}
+							String cleanedName = StringEscapeUtils.unescapeHtml4(row2.getString("name"));
 							String percentage = row2.getString("percent") + "%";
-							Assignment asg = new Assignment("Cat", row.getString("class"), row2.getString("name"), 
+							Assignment asg = new Assignment("Cat", row.getString("class"), cleanedName, 
 									"", "", score, total, letter, percentage, iter + 1, row2.getString("weight"));
 							assignmentList.add(asg);
 						}
@@ -514,7 +520,7 @@ public class GradeViewActivity extends SlidingFragmentActivity {
 		conn.setRequestMethod("GET");
 		conn.setDoInput(true);
 		conn.connect();
-		InputStream stream = conn.getInputStream(); // TODO: use better server, this thing takes 5 seconds :(
+		InputStream stream = conn.getInputStream();
 		return stream;
 	}
 
