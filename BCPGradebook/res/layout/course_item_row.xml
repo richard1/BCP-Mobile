@@ -1,8 +1,55 @@
 <?xml version="1.0" encoding="utf-8"?>
-<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout 
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal" 
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
     android:padding="10dp"
-    android:textSize="20sp" 
     android:background="#FFFFFF" >
-</TextView>
+     
+     <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="0dp"
+        android:layout_weight="1"
+        android:layout_marginLeft="5dp"
+        android:layout_height="fill_parent"
+        android:layout_alignParentLeft="true"
+        android:layout_toLeftOf="@+id/asg_letter">
+        
+        <TextView
+            android:id="@+id/asg_name"
+            android:layout_width="fill_parent"
+            android:layout_height="0dip"
+            android:layout_weight="1"
+            android:gravity="center_vertical"
+            android:textStyle="bold"
+        	android:textSize="18dp"
+        	android:layout_marginTop="5dp" />
+        
+        <TextView
+            android:layout_width="fill_parent"
+            android:layout_height="0dip"
+            android:layout_weight="1" 
+            android:id="@+id/asg_percent"
+            android:textSize="16dp"
+            android:singleLine="true"
+            android:ellipsize="marquee" 
+            android:textStyle="italic" />
+	</LinearLayout>
+	
+     <ImageView android:id="@+id/asg_letter"
+        android:gravity="center_vertical"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentBottom="true"
+        android:layout_marginRight="5dp"
+        android:layout_marginTop="5dp"
+        android:layout_marginBottom="5dp"
+        android:layout_marginLeft="10dp"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:src="@drawable/grade_a"
+        android:layout_gravity="center" />
+        
+	
+</RelativeLayout>

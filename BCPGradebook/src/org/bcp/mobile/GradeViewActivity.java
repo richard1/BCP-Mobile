@@ -15,9 +15,13 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
 
+import org.bcp.mobile.lib.Assignment;
+import org.bcp.mobile.lib.AssignmentsDatabase;
 import org.bcp.mobile.lib.DatabaseHandler;
 import org.bcp.mobile.lib.Grade;
 import org.bcp.mobile.lib.GradeAdapter;
+import org.bcp.mobile.lib.Item;
+import org.bcp.mobile.lib.SectionItem;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -63,12 +67,14 @@ public class GradeViewActivity extends SlidingFragmentActivity {
 	private String gradesUrl;
 	private ArrayList<Grade> semesterList1 = new ArrayList<Grade>();
 	private ArrayList<Grade> semesterList2 = new ArrayList<Grade>();
+	private ArrayList<Item> assignmentList = new ArrayList<Item>();
 	public final int SEMESTER_ONE_POSITION = 0;
 	public final int SEMESTER_TWO_POSITION = 1;
 	public static final String COURSE_ID = "bcp.web.bcpgradebook.courseid";
 
 	ProgressDialog progress;
 	DatabaseHandler db;
+	AssignmentsDatabase adb;
 	DecimalFormat decimalFormat = new DecimalFormat("##0.00");
 	ViewPager mViewPager;
 	TitlePageIndicator mIndicator;
@@ -129,11 +135,13 @@ public class GradeViewActivity extends SlidingFragmentActivity {
 				
 		Crouton.cancelAllCroutons();
 		db = new DatabaseHandler(this);
+		adb = new AssignmentsDatabase(this);
 
 		setTitle("Grades");
 
 		semesterList1.addAll((ArrayList<Grade>) db.getAllWithSemester(1));
 		semesterList2.addAll((ArrayList<Grade>) db.getAllWithSemester(2));
+		assignmentList.addAll((ArrayList<Item>) adb.getAll());
 
 		progress = new ProgressDialog(this);
 		progress.setTitle("Welcome");
@@ -151,7 +159,8 @@ public class GradeViewActivity extends SlidingFragmentActivity {
 		String username = intent.getStringExtra("username");
 		String encryptedPassword = intent.getStringExtra("encryptedPassword");
 
-		gradesUrl = "http://didjem.com/bell_api/grades.php?username=" + username + "&password=" + encryptedPassword;
+		//gradesUrl = "http://didjem.com/bell_api/grades.php?username=" + username + "&password=" + encryptedPassword;
+		gradesUrl = "http://brycepauken.com/api/3539/grades.php?username=" + username + "&password=" + encryptedPassword;
 
 		if(!isOnline()) {
 			progress.dismiss();
@@ -259,11 +268,13 @@ public class GradeViewActivity extends SlidingFragmentActivity {
 			listener = new OnItemClickListener() {
 				@Override
 				public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-					String title = ((Grade)adapter.getItem(position - 1)).title; // subtracting 1 to get correct index			    
+					String title = ((Grade)adapter.getItem(position - 1)).title; // subtracting 1 to get correct index
+					int semester = ((Grade)adapter.getItem(position - 1)).semester;
 					Toast.makeText(getApplicationContext(), "Item #: " + position, Toast.LENGTH_SHORT).show();
 					Intent intent = new Intent(getBaseContext(), CourseDetailActivity.class);
 					intent.putExtra(COURSE_ID, "Item #: " + position);
 					intent.putExtra("title", title);
+					intent.putExtra("semester", semester);
 					startActivity(intent);
 					overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
 				}
@@ -399,9 +410,11 @@ public class GradeViewActivity extends SlidingFragmentActivity {
 		}
 		semesterList1.clear();
 		semesterList2.clear();
+		assignmentList.clear();
 		JSONObject result = new JSONObject(rawJson);
-		int error = result.getInt("error");
-		if(error != 0) {
+		System.out.println("JSON GRES:" + result.toString());
+		int error = result.getInt("status");
+		if(error != 1) {
 			displayCrouton("AN ERROR OCCURRED, PLEASE TRY AGAIN LATER [" + error + "]", 3000, Style.ALERT);
 			return;
 		}
@@ -432,15 +445,48 @@ public class GradeViewActivity extends SlidingFragmentActivity {
 					Grade grade = new Grade(getIdFromGrade(row.getString("grade")), row.getString("class"), percent, iter + 1);
 					grade.addExtraText(extraText);
 					activeList.add(grade);
+					
+					JSONArray assignments = row.optJSONArray("assignments");
+					if(assignments != null) {
+						for(int j = 0; j < assignments.length(); j++) {
+							JSONObject row2 = assignments.getJSONObject(j);
+							System.out.println("JSON ASG: " + row2.toString());
+							double score = 0.0;
+							if(row2.getString("score") != null && row2.getString("score").length() > 0 && !row2.getString("score").equals("X")) {
+								score = Double.parseDouble(row2.getString("score")); // TODO: change db score to double
+							}
+							
+							double total = Double.parseDouble(row2.getString("total")); // TODO change db total to double
+							String percentage = "";
+							if(total <= 0) {
+								percentage = "EXTRA CREDIT";
+							}
+							else {
+								percentage = decimalFormat.format( ((double)score) / ((double)total) * 100.0) + "%";
+							}
+							Assignment asg = new Assignment("Asg", row.getString("class"), row2.getString("name"), 
+									row2.getString("date"), row2.getString("category"), score,
+									total, row2.getString("letter"), percentage, iter + 1, "");
+							assignmentList.add(asg);
+						}
+					}
+					
+					// TODO: categories
 				}
 			}
 		}
 		db.deleteAll();
+		adb.deleteAll();
 		for(Grade g : semesterList1) {
 			db.add(g);
 		}
 		for(Grade g : semesterList2) {
 			db.add(g);
+		}
+		for(Item i : assignmentList) {
+			if(!i.isSection()) {
+				adb.add((Assignment) i);
+			}
 		}
 	}
 

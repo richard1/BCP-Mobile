@@ -147,6 +147,9 @@ public class LoginActivity extends Activity {
 
 		// Store values at the time of the login attempt.
 		mEmail = mEmailView.getText().toString();
+		if(!mEmail.contains("@")) {
+			mEmail += "@bcp.org";
+		}
 		mPassword = mPasswordView.getText().toString();
 
 		boolean cancel = false;
@@ -235,7 +238,8 @@ public class LoginActivity extends Activity {
 		@Override
 		protected Boolean doInBackground(Void... params) {
 			try {
-				return loadPasswordFromNetwork("http://didjem.com/bell_api/login.php?username=" + mEmail + "&password=" + mPassword);
+				//return loadPasswordFromNetwork("http://didjem.com/bell_api/login.php?username=" + mEmail + "&password=" + mPassword);
+				return loadPasswordFromNetwork("http://brycepauken.com/api/3539/login.php?username=" + mEmail + "&password=" + mPassword);
 			} catch(Exception e) {
 				e.printStackTrace();
 				return false;
@@ -295,8 +299,11 @@ public class LoginActivity extends Activity {
 				stream.close();
 		}
 		JSONObject result = new JSONObject(json);
+		System.out.println("JSON RES: " +result.toString());
 		JSONObject dat = result.getJSONObject("data");
-		if(result.getInt("error") != 0) { // error
+		System.out.println("JSON DAT: " +dat.toString());
+		if(result.getInt("status") != 1) { // error
+			System.out.println("ERR: " + result.getInt("data"));
 			return false;
 		}
 		encryptPass = dat.getString("encryptedPass");

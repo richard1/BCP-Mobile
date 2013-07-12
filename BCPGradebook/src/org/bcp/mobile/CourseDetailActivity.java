@@ -1,8 +1,15 @@
 package org.bcp.mobile;
 
+import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.List;
 
 import org.bcp.mobile.R;
+import org.bcp.mobile.lib.Assignment;
+import org.bcp.mobile.lib.AssignmentAdapter;
+import org.bcp.mobile.lib.AssignmentsDatabase;
+import org.bcp.mobile.lib.Item;
+import org.bcp.mobile.lib.SectionItem;
 
 import android.os.Bundle;
 import android.app.ActionBar;
@@ -13,20 +20,20 @@ import android.content.Intent;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.ListView;
 import android.widget.AdapterView.OnItemClickListener;
 
 public class CourseDetailActivity extends ListActivity {
 	
-	private ListView myList;
-	ArrayAdapter<String> adapter;
-	private ArrayList<String> listContent = new ArrayList<String>();
+	AssignmentAdapter adapter;
+	private ArrayList<Item> listContent = new ArrayList<Item>();
 	OnItemClickListener listener = new OnItemClickListener() {
 		@Override
 		public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-			String title = adapter.getItem(position);
-			String detail = "Score: 14 / 15\nPercentage: 93.33%\nGrade: A\n\nCategory: Placeholder\nDue Date: Oct 23";
+			DecimalFormat decimalFormat = new DecimalFormat("##0.##");
+			Assignment asg = (Assignment) adapter.getItem(position);
+			String title = asg.name;
+			String detail = "Score: " + decimalFormat.format(asg.score) + " / " + decimalFormat.format(asg.total) + "\nPercentage: " +
+					asg.percent + "\nGrade: " + asg.letter + "\n\nCategory: " + asg.category + "\nDue Date: " + asg.date;
 	        AlertDialog.Builder builder = new AlertDialog.Builder(CourseDetailActivity.this);
 	        builder.setTitle(title);
 	        builder.setMessage(detail);
@@ -37,6 +44,7 @@ public class CourseDetailActivity extends ListActivity {
 	        builder.show();
 		}
 	};
+	AssignmentsDatabase adb;
 
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -47,26 +55,20 @@ public class CourseDetailActivity extends ListActivity {
 		actionBar.setDisplayHomeAsUpEnabled(true);
 		
 		Intent intent = this.getIntent();
-		String id = intent.getStringExtra(GradeViewActivity.COURSE_ID);
 		String title = intent.getStringExtra("title");
+		int semester = intent.getIntExtra("semester", 0);
 		if(title != null) {
 			setTitle(title);
 		} else {
 			setTitle("Unknown Course");
 		}
 		
-		listContent.add("Unit 1 Test");
-		listContent.add("Workbook pg. 23-25");
-		listContent.add("Quarter 1 Participation");
-		listContent.add("Unit 2 Test");
-		listContent.add("Homework 2/5/13");
-		listContent.add("Ch. 5 Quiz");
-		listContent.add("Extra Credit");
-		listContent.add("SOOO still waiting on the script");
-		listContent.add("these are placeholders");
-		listContent.add(id);
+		adb = new AssignmentsDatabase(this);
+		List<Item> asgs = adb.getAllWithSemesterAndCourse(semester, title);
+		listContent.add(new SectionItem("Assignments"));
+		listContent.addAll(asgs);
 		
-		adapter = new ArrayAdapter<String>(this, R.layout.course_item_row, listContent);
+		adapter = new AssignmentAdapter(this, R.layout.course_item_row, listContent);
 		setListAdapter(adapter);
 		
 		getListView().setOnItemClickListener(listener);
@@ -91,11 +93,5 @@ public class CourseDetailActivity extends ListActivity {
 	        default:
 	            return super.onOptionsItemSelected(item);
 	    }
-	}
-	
-	public void populateList(int list, ArrayList<String> content) {
-		myList = (ListView)findViewById(list);
-		adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, content);
-		myList.setAdapter(adapter);
 	}
 }
