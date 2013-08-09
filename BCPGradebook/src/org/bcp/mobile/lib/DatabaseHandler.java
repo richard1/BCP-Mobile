@@ -84,6 +84,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         Grade contact = new Grade(Integer.parseInt(cursor.getString(0)),
                 cursor.getString(1), cursor.getString(3), 
                 Integer.parseInt(cursor.getString(4))); // TODO: confirm
+        cursor.close();
         // return contact
         return contact;
     }
@@ -111,6 +112,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
             } while (cursor.moveToNext());
         }
  
+        cursor.close();
         // return contact list
         return gradeList;
     }
@@ -138,6 +140,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
             } while (cursor.moveToNext());
         }
  
+        cursor.close();
         // return contact list
         return gradeList;
     }
@@ -157,6 +160,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
             } while (cursor.moveToNext());
         }
  
+        cursor.close();
         // return contact list
         return map;
     }

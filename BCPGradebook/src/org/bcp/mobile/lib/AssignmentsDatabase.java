@@ -102,6 +102,7 @@ public class AssignmentsDatabase extends SQLiteOpenHelper {
                 cursor.getString(4), cursor.getString(5), Double.parseDouble(cursor.getString(6)), 
                 Double.parseDouble(cursor.getString(7)), cursor.getString(8), cursor.getString(9), 
                 Integer.parseInt(cursor.getString(10)), cursor.getString(11)); // TODO: confirm
+        cursor.close();
         return assignment;
     }
      
@@ -137,6 +138,7 @@ public class AssignmentsDatabase extends SQLiteOpenHelper {
             } while (cursor.moveToNext());
         }
  
+        cursor.close();
         // return contact list
         return assignmentList;
     }
@@ -171,6 +173,7 @@ public class AssignmentsDatabase extends SQLiteOpenHelper {
             } while (cursor.moveToNext());
         }
  
+        cursor.close();
         // return contact list
         return assignmentList;
     }
