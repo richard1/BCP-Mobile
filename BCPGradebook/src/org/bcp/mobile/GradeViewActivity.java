@@ -32,8 +32,10 @@ import org.jsoup.safety.Cleaner;
 import org.jsoup.safety.Whitelist;
 
 import android.annotation.SuppressLint;
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.os.AsyncTask;
@@ -169,7 +171,7 @@ public class GradeViewActivity extends SlidingFragmentActivity {
 		if(!isOnline()) {
 			progress.dismiss();
 		} else {
-			displayCrouton("CONNECTED", 3000, Style.CONFIRM);
+			displayCrouton("CONNECTED", 1000, Style.CONFIRM);
 		}
 
 		new DownloadGradesTask().execute(gradesUrl);
@@ -388,10 +390,13 @@ public class GradeViewActivity extends SlidingFragmentActivity {
 					displayCrouton("UPDATED", 1000, Style.INFO);
 				}
 				else if(result.equals("STE")) {
-					displayCrouton("SERVER TIMED OUT - PLEASE TRY AGAIN LATER", 5000, Style.ALERT);
+					displayCrouton("SERVER TIMED OUT - PLEASE TRY AGAIN LATER", 3000, Style.ALERT);
+				}
+				else if(result.equals("IOE")) {
+					displayCrouton("SOMETHING IS DOWN - PLEASE TRY AGAIN LATER", 3000, Style.ALERT);
 				}
 				else {
-					displayCrouton("UNEXPECTED ERROR - " + result, 5000, Style.ALERT);
+					displayCrouton("UNEXPECTED ERROR - " + result, 3000, Style.ALERT);
 				}
 			}
 			progress.dismiss();

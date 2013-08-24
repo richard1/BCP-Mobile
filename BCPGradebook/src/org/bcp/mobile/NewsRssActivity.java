@@ -7,6 +7,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.bcp.mobile.lib.Item;
 import org.bcp.mobile.lib.News;
 import org.bcp.mobile.lib.NewsAdapter;
 import org.bcp.mobile.lib.XmlParser;
@@ -46,11 +47,11 @@ public class NewsRssActivity extends SlidingFragmentActivity {
 	private PullToRefreshListView myList;
 	//private ArrayAdapter<String> adapter;
 	private NewsAdapter adapter;
-	private ArrayList<News> listContent = new ArrayList<News>();
+	private ArrayList<Item> listContent = new ArrayList<Item>();
 	OnItemClickListener listener = new OnItemClickListener() {
 		@Override
 		public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-			String url = adapter.getItem(position - 1).link;
+			String url = ((News)adapter.getItem(position - 1)).link;
 			Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
         	startActivity(browserIntent);
 		}
@@ -66,7 +67,7 @@ public class NewsRssActivity extends SlidingFragmentActivity {
 		setTitle("News");
 		setBehindContentView(R.layout.menu_frame);
 		
-		displayCrouton("RETRIEVING NEWS...", 5000, Style.INFO);
+		displayCrouton("RETRIEVING NEWS...", 3000, Style.INFO);
 		
 		if (savedInstanceState == null) {
 			mFrag = new MenuListFragment();
@@ -174,7 +175,7 @@ public class NewsRssActivity extends SlidingFragmentActivity {
 		listContent.clear();
 		int count = 0;
 		for (Entry entry : entries) { 
-			listContent.add(new News(entry.title, entry.link, entry.summary));
+			listContent.add(new News(entry.title, entry.link, "Posted on " + entry.summary.substring(0, entry.summary.indexOf(":") - 3)));
 			count++;
 			if(count >= MAX_NEWS_ARTICLES) {
 				break;

@@ -5,9 +5,12 @@
     tools:context=".AnnouncementsActivity"
     android:background="@color/bcpDark" >
 
-    <ListView 
+    <com.handmark.pulltorefresh.library.PullToRefreshListView 
+        xmlns:ptr="http://schemas.android.com/apk/res-auto"
         android:id="@+id/announcements_list"
         android:layout_height="fill_parent"
-		android:layout_width="fill_parent" />
+		android:layout_width="fill_parent"
+		ptr:ptrHeaderBackground="@color/bcpDark"
+	    ptr:ptrHeaderTextColor="#FFFFFF" />
 
 </RelativeLayout>

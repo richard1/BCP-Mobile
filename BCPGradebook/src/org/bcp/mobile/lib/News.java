@@ -1,6 +1,6 @@
 package org.bcp.mobile.lib;
 
-public class News {
+public class News implements Item {
     public String title;
     public String link;
     public String date;
@@ -11,4 +11,9 @@ public class News {
         this.link = link;
         this.date = date;
     }
+
+	@Override
+	public boolean isSection() {
+		return false;
+	}
 }
