@@ -119,7 +119,7 @@ public class MenuListFragment extends ListFragment {
 		        builder.setMessage(about);
 		        builder.setPositiveButton("Rate", new DialogInterface.OnClickListener() {
 		            public void onClick(DialogInterface dialog, int id) {
-		            	Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://google.com/")); // TODO: replace with link
+		            	Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=org.bcp.mobile"));
 		            	startActivity(browserIntent);
 		            }
 		        });

@@ -435,9 +435,16 @@ public class GradeViewActivity extends SlidingFragmentActivity {
 					String extraText = "";
 					if(!percentMap.isEmpty()) {
 						String courseName = row.getString("class");
+						double oldPercent, newPercent;
 						System.out.println("looking for: " + courseName + "\n" + percentMap.get(courseName));
-						double oldPercent = Double.parseDouble(percentMap.get(courseName).replaceAll("%", ""));
-						double newPercent = Double.parseDouble(percent.replaceAll("%", ""));
+						if(percentMap.get(courseName) == null) { // class not found - classes were changed since last refresh
+							newPercent = Double.parseDouble(percent.replaceAll("%", ""));
+							oldPercent = newPercent;
+						}
+						else {
+							oldPercent = Double.parseDouble(percentMap.get(courseName).replaceAll("%", ""));
+							newPercent = Double.parseDouble(percent.replaceAll("%", ""));
+						}
 						System.out.println(newPercent + " - " + oldPercent + " = " + (newPercent - oldPercent));
 						extraText += "   " + (newPercent < oldPercent ? "" : "+") 
 								+ decimalFormat.format((newPercent - oldPercent)) + "%";
