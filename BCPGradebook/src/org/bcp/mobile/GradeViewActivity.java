@@ -25,17 +25,9 @@ import org.bcp.mobile.lib.Item;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Entities.EscapeMode;
-import org.jsoup.safety.Cleaner;
-import org.jsoup.safety.Whitelist;
-
 import android.annotation.SuppressLint;
-import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.os.AsyncTask;
@@ -171,7 +163,8 @@ public class GradeViewActivity extends SlidingFragmentActivity {
 		if(!isOnline()) {
 			progress.dismiss();
 		} else {
-			displayCrouton("CONNECTED", 1000, Style.CONFIRM);
+			//displayCrouton("CONNECTED", 1000, Style.CONFIRM);
+			System.out.println("CONNECTED!");
 		}
 
 		new DownloadGradesTask().execute(gradesUrl);

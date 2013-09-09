@@ -9,8 +9,6 @@ import org.bcp.mobile.lib.Assignment;
 import org.bcp.mobile.lib.AssignmentAdapter;
 import org.bcp.mobile.lib.AssignmentsDatabase;
 import org.bcp.mobile.lib.Item;
-import org.bcp.mobile.lib.SectionItem;
-
 import android.os.Bundle;
 import android.app.ActionBar;
 import android.app.AlertDialog;

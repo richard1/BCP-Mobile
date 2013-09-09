@@ -4,9 +4,6 @@ import org.bcp.mobile.lib.DatabaseHandler;
 
 import org.bcp.mobile.R;
 
-import de.keyboardsurfer.android.widget.crouton.Configuration;
-import de.keyboardsurfer.android.widget.crouton.Crouton;
-import de.keyboardsurfer.android.widget.crouton.Style;
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.Context;
@@ -20,7 +17,6 @@ import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ViewGroup.LayoutParams;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -112,12 +108,12 @@ public class MenuListFragment extends ListFragment {
 		        builder.show();
 		        break;
 			case 6:
-				Intent emailIntent = new Intent(Intent.ACTION_SENDTO, Uri.fromParts("mailto","richard@team254.com,jonathan.chang13@gmail.com", null));
+				Intent emailIntent = new Intent(Intent.ACTION_SENDTO, Uri.fromParts("mailto","richwierdo@gmail.com,jonathan.chang13@gmail.com", null));
 				emailIntent.putExtra(Intent.EXTRA_SUBJECT, "BCP Mobile Comment/Question/Suggestion");
 				startActivity(Intent.createChooser(emailIntent, "Send email..."));
 				break;
 			case 7: // Rate
-				about = "If this app has helped you out, feel free to leave a rating on the Google Play Store page. Thanks so much!";
+				about = "If this app has helped you out, feel free to leave a rating on the Google Play Store page. Thanks!";
 		        builder = new AlertDialog.Builder(getActivity());
 		        builder.setTitle("Rate");
 		        builder.setMessage(about);

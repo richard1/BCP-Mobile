@@ -186,7 +186,7 @@ public class AnnouncementsActivity extends SlidingFragmentActivity {
 			if(!isOnline()) {
 				displayCrouton("NO INTERNET CONNECTION", 3000, Style.ALERT);
 			} else {
-				displayCrouton("UPDATED", 1000, Style.INFO);
+				//displayCrouton("UPDATED", 1000, Style.INFO);
 				refreshList();
 			}
 			myList.onRefreshComplete();

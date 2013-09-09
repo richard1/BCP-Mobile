@@ -277,7 +277,8 @@ public class LoginActivity extends Activity {
 				overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
 				finish();
 			} else {
-				mPasswordView.setError(getString(R.string.error_incorrect_password));
+				//mPasswordView.setError(getString(R.string.error_incorrect_password));
+				mPasswordView.setError("Incorrect password. If not, the server may be down; please try again later");
 				mPasswordView.requestFocus();
 			}
 		}
