@@ -10,6 +10,13 @@ import java.io.Writer;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.util.EntityUtils;
 import org.bcp.mobile.lib.DatabaseHandler;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -149,13 +156,20 @@ public class LoginActivity extends Activity {
 
 		// Store values at the time of the login attempt.
 		mEmail = mEmailView.getText().toString().toLowerCase();
+		/*
 		if(!mEmail.contains("@")) {
 			mEmail += "@bcp.org";
 		}
+		*/
+		mEmail.replaceAll("@bcp.org", "");
 		mPassword = mPasswordView.getText().toString();
+		
+		System.out.println("json email: " + mEmail);
 
 		boolean cancel = false;
 		View focusView = null;
+		
+		System.out.println("json checkpoint 1");
 
 		// Check for a valid password.
 		if (TextUtils.isEmpty(mPassword)) {
@@ -170,6 +184,8 @@ public class LoginActivity extends Activity {
 			focusView = mEmailView;
 			cancel = true;
 		}
+		
+		System.out.println("json checkpoint 2");
 
 		if (cancel) {
 			// There was an error; don't attempt login and focus the first
@@ -241,7 +257,10 @@ public class LoginActivity extends Activity {
 		protected Boolean doInBackground(Void... params) {
 			try {
 				//return loadPasswordFromNetwork("http://didjem.com/bell_api/login.php?username=" + mEmail + "&password=" + mPassword);
-				return loadPasswordFromNetwork("http://brycepauken.com/api/3539/login.php?username=" + mEmail + "&password=" + mPassword);
+				//return loadPasswordFromNetwork("http://brycepauken.com/api/3539/login.php?username=" + mEmail + "&password=" + mPassword);
+				String theURL = "https://" + mEmail + ":" + mPassword + "@" + "kingfi.sh/api/bcpmobile/v1/login";
+				System.out.println("json login url: " + theURL);
+				return loadPasswordFromNetwork(theURL);
 			} catch(Exception e) {
 				e.printStackTrace();
 				return false;
@@ -272,13 +291,13 @@ public class LoginActivity extends Activity {
 				imm.hideSoftInputFromWindow(mPasswordView.getWindowToken(), 0);
 				Intent intent = new Intent(getBaseContext(), GradeViewActivity.class);
 				intent.putExtra("username", mEmail);
-				intent.putExtra("encryptedPassword", mEncryptedPassword);
+				intent.putExtra("encryptedPasswobrd", mEncryptedPassword);
 				startActivity(intent);
 				overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
 				finish();
 			} else {
 				//mPasswordView.setError(getString(R.string.error_incorrect_password));
-				mPasswordView.setError("Incorrect password. If not, the server may be down; please try again later");
+				mPasswordView.setError("Incorrect password. If not, something may be down");
 				mPasswordView.requestFocus();
 			}
 		}
@@ -295,38 +314,77 @@ public class LoginActivity extends Activity {
 		String encryptPass = "";
 		String json = "";
 		try {
-			stream = downloadUrl(urlString);
-			json = convertStreamToString(stream);
+			json = downloadUrl(urlString);
+			//json = convertStreamToString(stream);
 		} finally {
 			if(stream != null)
 				stream.close();
 		}
 		JSONObject result = new JSONObject(json);
 		System.out.println("JSON RES: " +result.toString());
-		JSONObject dat = result.getJSONObject("data");
-		System.out.println("JSON DAT: " +dat.toString());
-		if(result.getInt("status") != 1) { // error
-			System.out.println("ERR: " + result.getInt("data"));
+		//JSONObject dat = result.getJSONObject("data");
+		//System.out.println("JSON DAT: " +dat.toString());
+		//if(result.getInt("status") != 1) { // error
+		if(result.has("error") && result.getString("error") != null) {
+			System.out.println("ERR: " + result.getString("error"));
 			return false;
 		}
-		encryptPass = dat.getString("encryptedPass");
+		encryptPass = result.getString("encryptedPassword");
 		mEncryptedPassword = encryptPass;
 		return true;
 	}
 	
-	private InputStream downloadUrl(String urlString) throws IOException {
+	private String downloadUrl(String urlString) throws IOException {
+		String output = "null";
+		DefaultHttpClient httpclient = new DefaultHttpClient();
+        try {
+            httpclient.getCredentialsProvider().setCredentials(
+            		new AuthScope(AuthScope.ANY_HOST, AuthScope.ANY_PORT),
+                    new UsernamePasswordCredentials(mEmail, mPassword));
+            System.out.println("mE: " + mEmail +", mP: " + mPassword);
+ 
+            HttpGet httpget = new HttpGet("http://kingfi.sh/api/bcpmobile/v1/login");
+ 
+            System.out.println("executing request" + httpget.getRequestLine());
+            HttpResponse response = httpclient.execute(httpget);
+            HttpEntity entity = response.getEntity();
+ 
+            System.out.println("----------------------------------------");
+            System.out.println(response.getStatusLine());
+            if (entity != null) {
+                System.out.println("Response content length: " + entity.getContentLength());
+                String resp = EntityUtils.toString(entity);
+                System.out.println(resp);
+                output = resp;
+            }
+        } catch(Exception e) {
+        	e.printStackTrace();
+        } finally {
+            httpclient.getConnectionManager().shutdown();
+        }
+        return output;
+        /*
+		System.out.println("json checkpoint 3.5");
 		URL url = new URL(urlString);
-		HttpURLConnection conn = (HttpURLConnection)url.openConnection();
-		conn.setReadTimeout(10000 /* milliseconds */);
-	    conn.setConnectTimeout(15000 /* milliseconds */);
+		HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+		System.out.println("json checkpoint 3.6");
+		conn.setReadTimeout(10000);
+	    conn.setConnectTimeout(15000);
 	    conn.setRequestMethod("GET");
 	    conn.setDoInput(true);
+	    conn.setRequestProperty("User-Agent", "Mozilla/5.0 ( compatible ) ");
+	    conn.setRequestProperty("Accept", "*");
+	    conn.setDoOutput(true);
 	    // Starts the query
+	    System.out.println("json checkpoint 3.7");
 	    conn.connect();
-	    return conn.getInputStream();
+	    System.out.println("json checkpoint 3.8");
+	    int status = conn.getResponseCode();
+	    System.out.println("json response: " + status);
+	    return conn.getInputStream();*/
 	}
 	
-	private static String convertStreamToString(InputStream inputStream) throws IOException {
+	private static String convertStreamToString(InputStream inputStream) throws IOException { // not used
         if (inputStream != null) {
             Writer writer = new StringWriter();
 

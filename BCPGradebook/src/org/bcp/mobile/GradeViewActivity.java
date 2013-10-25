@@ -16,6 +16,13 @@ import java.util.Calendar;
 import java.util.HashMap;
 
 import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.util.EntityUtils;
 import org.bcp.mobile.lib.Assignment;
 import org.bcp.mobile.lib.AssignmentsDatabase;
 import org.bcp.mobile.lib.DatabaseHandler;
@@ -69,6 +76,9 @@ public class GradeViewActivity extends SlidingFragmentActivity {
 	public final int SEMESTER_ONE_POSITION = 0;
 	public final int SEMESTER_TWO_POSITION = 1;
 	public static final String COURSE_ID = "bcp.web.bcpgradebook.courseid";
+	
+	private String username;
+	private String encryptedPassword;
 
 	ProgressDialog progress;
 	DatabaseHandler db;
@@ -86,6 +96,8 @@ public class GradeViewActivity extends SlidingFragmentActivity {
 	
 	MenuListFragment mFrag;
 	Fragment mContent;
+	
+	
 
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -154,8 +166,11 @@ public class GradeViewActivity extends SlidingFragmentActivity {
 		}
 
 		Intent intent = this.getIntent();
-		String username = intent.getStringExtra("username");
-		String encryptedPassword = intent.getStringExtra("encryptedPassword");
+		username = intent.getStringExtra("username");
+		username = (username == null) ? getSharedPreferences("username", MODE_PRIVATE).getString("username", "") : username;
+		encryptedPassword = intent.getStringExtra("encryptedPassword");
+		encryptedPassword = (encryptedPassword == null) ? getSharedPreferences("password", MODE_PRIVATE).getString("password", "") : 
+			encryptedPassword;
 
 		//gradesUrl = "http://didjem.com/bell_api/grades.php?username=" + username + "&password=" + encryptedPassword;
 		gradesUrl = "http://brycepauken.com/api/3539/grades.php?username=" + username + "&password=" + encryptedPassword;
@@ -403,8 +418,8 @@ public class GradeViewActivity extends SlidingFragmentActivity {
 		InputStream stream = null;
 		String rawJson = "";
 		try {
-			stream = downloadUrl(urlString);
-			rawJson = convertStreamToString(stream);
+			rawJson = downloadUrl(urlString);
+			//rawJson = convertStreamToString(stream);
 		} finally {
 			if(stream != null)
 				stream.close();
@@ -414,9 +429,9 @@ public class GradeViewActivity extends SlidingFragmentActivity {
 		assignmentList.clear();
 		JSONObject result = new JSONObject(rawJson);
 		System.out.println("JSON GRES:" + result.toString());
-		int error = result.getInt("status");
-		if(error != 1) {
-			displayCrouton("AN ERROR OCCURRED, PLEASE TRY AGAIN LATER [" + error + "]", 3000, Style.ALERT);
+		boolean error = result.has("error");
+		if(error) {
+			displayCrouton("AN ERROR OCCURRED, PLEASE TRY AGAIN LATER [" + result.getString("error") + "]", 3000, Style.ALERT);
 			return;
 		}
 		
@@ -425,16 +440,16 @@ public class GradeViewActivity extends SlidingFragmentActivity {
 			HashMap<String, String> percentMap = db.getPercentTitleMap(iter+1);
 			System.out.println("MAP: " + percentMap.toString()); // TODO: check if key exists
 	
-			JSONObject data = result.getJSONObject("data");
-			JSONArray sem = iter == 0 ? data.getJSONArray("semester1") : data.getJSONArray("semester2");
+			//JSONObject data = result.getJSONObject("data");
+			JSONArray sem = iter == 0 ? result.getJSONArray("semester1") : result.getJSONArray("semester2");
 			ArrayList<Grade> activeList = iter == 0 ? semesterList1 : semesterList2;
 			for(int i = 0; i < sem.length(); i++) {
 				JSONObject row = sem.getJSONObject(i);
-				if(!row.getString("class").equals("Homeroom") && row.getString("percentage") != null && !row.getString("percentage").equals("null")) {
-					String percent = row.getString("percentage");
+				if(!row.getString("course").equals("Homeroom") && row.has("percent") && !row.getString("percent").equals("null")) {
+					String percent = row.getString("percent");
 					String extraText = "";
 					if(!percentMap.isEmpty()) {
-						String courseName = row.getString("class");
+						String courseName = row.getString("course");
 						double oldPercent, newPercent;
 						System.out.println("looking for: " + courseName + "\n" + percentMap.get(courseName));
 						if(percentMap.get(courseName) == null) { // class not found - classes were changed since last refresh
@@ -450,7 +465,7 @@ public class GradeViewActivity extends SlidingFragmentActivity {
 								+ decimalFormat.format((newPercent - oldPercent)) + "%";
 					}
 	
-					Grade grade = new Grade(getIdFromGrade(row.getString("grade")), row.getString("class"), percent, iter + 1);
+					Grade grade = new Grade(getIdFromGrade(row.getString("letter")), row.getString("course"), percent, iter + 1);
 					grade.addExtraText(extraText);
 					activeList.add(grade);
 					
@@ -460,11 +475,11 @@ public class GradeViewActivity extends SlidingFragmentActivity {
 							JSONObject row2 = assignments.getJSONObject(j);
 							String letter = row2.getString("letter");
 							double score = 0.0;
-							if(row2.getString("score") != null && row2.getString("score").length() > 0 && !row2.getString("score").equals("X")) {
-								score = Double.parseDouble(row2.getString("score"));
+							if(row2.getString("grade") != null && row2.getString("grade").length() > 0 && !row2.getString("grade").equals("X")) {
+								score = Double.parseDouble(row2.getString("grade"));
 							}
 							
-							double total = Double.parseDouble(row2.getString("total"));
+							double total = Double.parseDouble(row2.getString("max"));
 							String percentage = "";
 							if(total <= 0) {
 								percentage = "Extra Credit";
@@ -474,8 +489,8 @@ public class GradeViewActivity extends SlidingFragmentActivity {
 								percentage = decimalFormat.format( ((double)score) / ((double)total) * 100.0) + "%";
 							}
 							String cleanedName = StringEscapeUtils.unescapeHtml4(row2.getString("name"));
-							Assignment asg = new Assignment("Asg", row.getString("class"), cleanedName, 
-									row2.getString("date"), row2.getString("category"), score,
+							Assignment asg = new Assignment("Asg", row.getString("course"), cleanedName, 
+									row2.getString("due"), row2.getString("category"), score,
 									total, letter, percentage, iter + 1, "");
 							assignmentList.add(asg);
 						}
@@ -485,16 +500,16 @@ public class GradeViewActivity extends SlidingFragmentActivity {
 					if(cats != null) {
 						for(int j = 0; j < cats.length(); j++) {
 							JSONObject row2 = cats.getJSONObject(j);
-							String rawScore = row2.getString("score");
+							String rawScore = row2.getString("points");
 							String letter = row2.getString("letter");
 							double score = Double.parseDouble(rawScore.substring(0, rawScore.indexOf(" ")));
 							double total = Double.parseDouble(rawScore.substring(rawScore.indexOf("/") + 2, rawScore.length()));
 							if(total <= 0) {
 								letter = "A+";
 							}
-							String cleanedName = StringEscapeUtils.unescapeHtml4(row2.getString("name"));
+							String cleanedName = StringEscapeUtils.unescapeHtml4(row2.getString("category"));
 							String percentage = row2.getString("percent") + "%";
-							Assignment asg = new Assignment("Cat", row.getString("class"), cleanedName, 
+							Assignment asg = new Assignment("Cat", row.getString("course"), cleanedName, 
 									"", "", score, total, letter, percentage, iter + 1, row2.getString("weight"));
 							assignmentList.add(asg);
 						}
@@ -517,16 +532,45 @@ public class GradeViewActivity extends SlidingFragmentActivity {
 		}
 	}
 
-	private InputStream downloadUrl(String urlString) throws IOException, SocketTimeoutException {
+	private String downloadUrl(String urlString) throws IOException, SocketTimeoutException {
+		String output = "null";
+		DefaultHttpClient httpclient = new DefaultHttpClient();
+        try {
+            httpclient.getCredentialsProvider().setCredentials(
+            		new AuthScope(AuthScope.ANY_HOST, AuthScope.ANY_PORT),
+                    new UsernamePasswordCredentials(username, encryptedPassword));
+            System.out.println("mE: " + username +", mP: " + encryptedPassword);
+ 
+            HttpGet httpget = new HttpGet("http://kingfi.sh/api/bcpmobile/v1/grades");
+ 
+            System.out.println("executing request" + httpget.getRequestLine());
+            HttpResponse response = httpclient.execute(httpget);
+            HttpEntity entity = response.getEntity();
+ 
+            System.out.println("----------------------------------------");
+            System.out.println(response.getStatusLine());
+            if (entity != null) {
+                System.out.println("Response content length: " + entity.getContentLength());
+                String resp = EntityUtils.toString(entity);
+                //System.out.println(resp);
+                output = resp;
+            }
+        } catch(Exception e) {
+        	e.printStackTrace();
+        } finally {
+            httpclient.getConnectionManager().shutdown();
+        }
+        return output;
+		/*
 		URL url = new URL(urlString);
 		conn = (HttpURLConnection)url.openConnection();
-		conn.setReadTimeout(10000 /* milliseconds */);
-		conn.setConnectTimeout(15000 /* milliseconds */);
+		conn.setReadTimeout(10000);
+		conn.setConnectTimeout(15000);
 		conn.setRequestMethod("GET");
 		conn.setDoInput(true);
 		conn.connect();
 		InputStream stream = conn.getInputStream();
-		return stream;
+		return stream;*/
 	}
 
 	private String convertStreamToString(InputStream inputStream) throws IOException {
