@@ -1,15 +1,8 @@
 package org.bcp.mobile;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.io.StringWriter;
-import java.io.Writer;
-import java.net.HttpURLConnection;
 import java.net.SocketTimeoutException;
-import java.net.URL;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -69,36 +62,32 @@ import de.keyboardsurfer.android.widget.crouton.Style;
 
 public class GradeViewActivity extends SlidingFragmentActivity {
 
+	public static final int SEMESTER_ONE_POSITION = 0;
+	public static final int SEMESTER_TWO_POSITION = 1;
+	public static final String COURSE_ID = "bcp.web.bcpgradebook.courseid";
+	
 	private String gradesUrl;
 	private ArrayList<Grade> semesterList1 = new ArrayList<Grade>();
 	private ArrayList<Grade> semesterList2 = new ArrayList<Grade>();
 	private ArrayList<Item> assignmentList = new ArrayList<Item>();
-	public final int SEMESTER_ONE_POSITION = 0;
-	public final int SEMESTER_TWO_POSITION = 1;
-	public static final String COURSE_ID = "bcp.web.bcpgradebook.courseid";
 	
 	private String username;
 	private String encryptedPassword;
 
-	ProgressDialog progress;
-	DatabaseHandler db;
-	AssignmentsDatabase adb;
-	DecimalFormat decimalFormat = new DecimalFormat("##0.00");
-	ViewPager mViewPager;
-	TitlePageIndicator mIndicator;
-	GradePagerAdapter mAdapter;
-	SlidingMenu sm;
+	private ProgressDialog progress;
+	private DatabaseHandler db;
+	private AssignmentsDatabase adb;
+	private DecimalFormat decimalFormat = new DecimalFormat("##0.00");
+	private ViewPager mViewPager;
+	private TitlePageIndicator mIndicator;
+	private GradePagerAdapter mAdapter;
+	private SlidingMenu sm;
 
-	HttpURLConnection conn;
-
-	GradeFragment semesterOneFragment;
-	GradeFragment semesterTwoFragment;
+	private GradeFragment semesterOneFragment;
+	private GradeFragment semesterTwoFragment;
 	
-	MenuListFragment mFrag;
-	Fragment mContent;
+	private MenuListFragment mFrag;
 	
-	
-
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		
@@ -120,10 +109,6 @@ public class GradeViewActivity extends SlidingFragmentActivity {
 		} else {
 			mFrag = (MenuListFragment)this.getSupportFragmentManager().findFragmentById(R.id.menu_frame);
 		}
-		
-		
-		if (savedInstanceState != null)
-			mContent = getSupportFragmentManager().getFragment(savedInstanceState, "mContent");
 		
 		setContentView(R.layout.main);
 		sm = getSlidingMenu();
@@ -172,13 +157,11 @@ public class GradeViewActivity extends SlidingFragmentActivity {
 		encryptedPassword = (encryptedPassword == null) ? getSharedPreferences("password", MODE_PRIVATE).getString("password", "") : 
 			encryptedPassword;
 
-		//gradesUrl = "http://didjem.com/bell_api/grades.php?username=" + username + "&password=" + encryptedPassword;
 		gradesUrl = "http://brycepauken.com/api/3539/grades.php?username=" + username + "&password=" + encryptedPassword;
 
 		if(!isOnline()) {
 			progress.dismiss();
 		} else {
-			//displayCrouton("CONNECTED", 1000, Style.CONFIRM);
 			System.out.println("CONNECTED!");
 		}
 
@@ -197,7 +180,6 @@ public class GradeViewActivity extends SlidingFragmentActivity {
 	
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
-		//menu.add("Search").setIcon(R.drawable.world).setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
 		return super.onCreateOptionsMenu(menu);
 	}
 
@@ -419,7 +401,6 @@ public class GradeViewActivity extends SlidingFragmentActivity {
 		String rawJson = "";
 		try {
 			rawJson = downloadUrl(urlString);
-			//rawJson = convertStreamToString(stream);
 		} finally {
 			if(stream != null)
 				stream.close();
@@ -440,7 +421,6 @@ public class GradeViewActivity extends SlidingFragmentActivity {
 			HashMap<String, String> percentMap = db.getPercentTitleMap(iter+1);
 			System.out.println("MAP: " + percentMap.toString()); // TODO: check if key exists
 	
-			//JSONObject data = result.getJSONObject("data");
 			JSONArray sem = iter == 0 ? result.getJSONArray("semester1") : result.getJSONArray("semester2");
 			ArrayList<Grade> activeList = iter == 0 ? semesterList1 : semesterList2;
 			for(int i = 0; i < sem.length(); i++) {
@@ -561,36 +541,5 @@ public class GradeViewActivity extends SlidingFragmentActivity {
             httpclient.getConnectionManager().shutdown();
         }
         return output;
-		/*
-		URL url = new URL(urlString);
-		conn = (HttpURLConnection)url.openConnection();
-		conn.setReadTimeout(10000);
-		conn.setConnectTimeout(15000);
-		conn.setRequestMethod("GET");
-		conn.setDoInput(true);
-		conn.connect();
-		InputStream stream = conn.getInputStream();
-		return stream;*/
-	}
-
-	private String convertStreamToString(InputStream inputStream) throws IOException {
-		if (inputStream != null) {
-			Writer writer = new StringWriter();
-
-			char[] buffer = new char[1024];
-			try {
-				Reader reader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"), 1024);
-				int n;
-				while ((n = reader.read(buffer)) != -1) {
-					writer.write(buffer, 0, n);
-				}
-			} finally {
-				inputStream.close();
-				conn.disconnect();
-			}
-			return writer.toString();
-		} else {
-			return "";
-		}
 	}
 }

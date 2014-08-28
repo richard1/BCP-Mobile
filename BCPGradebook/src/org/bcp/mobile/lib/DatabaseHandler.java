@@ -164,32 +164,6 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         // return contact list
         return map;
     }
- 
-    /*
-    // Updating single contact
-    public int update(Grade grade) {
-        SQLiteDatabase db = this.getWritableDatabase();
- 
-        ContentValues values = new ContentValues();
-        values.put(KEY_NAME, grade.title);
-        values.put(KEY_LETTER, grade.icon);
-        values.put(KEY_PERCENT, grade.subtitle);
- 
-        // updating row
-        return db.update(TABLE_GRADES, values, KEY_ID + " = ?",
-                new String[] { String.valueOf(grade.getID()) });
-    }
-    */
-    
-    /*
-    // Deleting single contact
-    public void delete(Grade grade) {
-        SQLiteDatabase db = this.getWritableDatabase();
-        db.delete(TABLE_GRADES, KEY_ID + " = ?",
-                new String[] { String.valueOf(grade.getID()) });
-        db.close();
-    }
- */
     
     public void deleteAll() {
         SQLiteDatabase db = this.getWritableDatabase();

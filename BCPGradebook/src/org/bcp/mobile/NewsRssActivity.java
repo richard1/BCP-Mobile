@@ -42,13 +42,13 @@ import android.widget.ListView;
 import android.widget.AdapterView.OnItemClickListener;
 
 public class NewsRssActivity extends SlidingFragmentActivity {
-	MenuListFragment mFrag;
-	SlidingMenu sm;
+	private MenuListFragment mFrag;
+	private SlidingMenu sm;
 	private PullToRefreshListView myList;
-	//private ArrayAdapter<String> adapter;
 	private NewsAdapter adapter;
 	private ArrayList<Item> listContent = new ArrayList<Item>();
-	OnItemClickListener listener = new OnItemClickListener() {
+	
+	private OnItemClickListener listener = new OnItemClickListener() {
 		@Override
 		public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 			String url = ((News)adapter.getItem(position - 1)).link;
@@ -56,7 +56,8 @@ public class NewsRssActivity extends SlidingFragmentActivity {
         	startActivity(browserIntent);
 		}
 	};
-	HttpURLConnection conn;
+	
+	private HttpURLConnection conn;
 	public static final int MAX_NEWS_ARTICLES = 25;
 	public static final String NEWS_RSS_FEED = "http://www.bcp.org/news/rss.aspx?ModuleID=191";
 
@@ -150,7 +151,6 @@ public class NewsRssActivity extends SlidingFragmentActivity {
 			if(!isOnline()) {
 				displayCrouton("NO INTERNET CONNECTION", 3000, Style.ALERT);
 			} else {
-				//displayCrouton("UPDATED", 1000, Style.INFO);
 				refreshList();
 			}
 			myList.onRefreshComplete();

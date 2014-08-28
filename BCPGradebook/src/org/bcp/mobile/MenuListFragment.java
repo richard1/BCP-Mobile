@@ -27,9 +27,9 @@ import android.widget.Toast;
 
 public class MenuListFragment extends ListFragment {
 	
-	SampleAdapter adapter;
-	Toast toast;
-	int easterEgg = 0;
+	private SidebarMenuAdapter adapter;
+	private Toast toast;
+	private int easterEgg = 0;
 
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 		return inflater.inflate(R.layout.list, null);
@@ -37,7 +37,7 @@ public class MenuListFragment extends ListFragment {
 
 	public void onActivityCreated(Bundle savedInstanceState) {
 		super.onActivityCreated(savedInstanceState);
-		adapter = new SampleAdapter(getActivity());
+		adapter = new SidebarMenuAdapter(getActivity());
 		SharedPreferences userPref = getActivity().getSharedPreferences("username", Context.MODE_PRIVATE);
 		String savedUsername = userPref.getString("username", "");
 		String[] userInfo = getNameFromUsername(savedUsername);
@@ -101,14 +101,15 @@ public class MenuListFragment extends ListFragment {
 		        });
 		        builder.setNegativeButton("View on GitHub", new DialogInterface.OnClickListener() {
 		            public void onClick(DialogInterface dialog, int id) {
-		            	Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/richard1/"));
+		            	Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/richard1/BCP-Mobile"));
 		            	startActivity(browserIntent);
 		            }
 		        });
 		        builder.show();
 		        break;
 			case 6:
-				Intent emailIntent = new Intent(Intent.ACTION_SENDTO, Uri.fromParts("mailto","richwierdo@gmail.com,jonathan.chang13@gmail.com", null));
+				Intent emailIntent = new Intent(Intent.ACTION_SENDTO, Uri.fromParts("mailto",
+						"richwierdo@gmail.com,jonathan.chang13@gmail.com", null));
 				emailIntent.putExtra(Intent.EXTRA_SUBJECT, "BCP Mobile Comment/Question/Suggestion");
 				startActivity(Intent.createChooser(emailIntent, "Send email..."));
 				break;
@@ -119,7 +120,8 @@ public class MenuListFragment extends ListFragment {
 		        builder.setMessage(about);
 		        builder.setPositiveButton("Rate", new DialogInterface.OnClickListener() {
 		            public void onClick(DialogInterface dialog, int id) {
-		            	Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=org.bcp.mobile"));
+		            	Intent browserIntent = new Intent(Intent.ACTION_VIEW, 
+		            			Uri.parse("https://play.google.com/store/apps/details?id=org.bcp.mobile"));
 		            	startActivity(browserIntent);
 		            }
 		        });
@@ -150,9 +152,9 @@ public class MenuListFragment extends ListFragment {
 		}
 	}
 
-	public class SampleAdapter extends ArrayAdapter<SampleItem> {
+	public class SidebarMenuAdapter extends ArrayAdapter<SampleItem> {
 
-		public SampleAdapter(Context context) {
+		public SidebarMenuAdapter(Context context) {
 			super(context, 0);
 		}
 

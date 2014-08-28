@@ -31,6 +31,7 @@ import android.net.ConnectivityManager;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup.LayoutParams;
@@ -39,17 +40,19 @@ import android.widget.ListView;
 import android.widget.AdapterView.OnItemClickListener;
 
 public class AnnouncementsActivity extends SlidingFragmentActivity {
-	MenuListFragment mFrag;
-	SlidingMenu sm;
+	
+	private static final String ANNOUNCEMENTS_URL = "http://times.bcp.org/anc/announcements/announcements.php";
+
+	private MenuListFragment mFrag;
+	private SlidingMenu sm;
 	private PullToRefreshListView myList;
 	private NewsAdapter adapter;
 	private ArrayList<Item> listContent = new ArrayList<Item>();
-	private String url = "http://greco.bcp.org/webs/svc/anc/daily.php";
+	
 	OnItemClickListener listener = new OnItemClickListener() {
 		@Override
 		public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-			String url = "http://www.bcp.org/students/student-life/daily-announcements/index.aspx";
-			Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+			Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(ANNOUNCEMENTS_URL));
         	startActivity(browserIntent);
 		}
 	};
@@ -79,11 +82,6 @@ public class AnnouncementsActivity extends SlidingFragmentActivity {
 
 		getActionBar().setDisplayHomeAsUpEnabled(true);
 		
-		//listContent.add(new News("Hey, these don't look like announcements. Give me my announcements!", "", "You're right, these aren't the announcements you're looking for.  The announcements feature is currently under development and will most likely be implemented a week or two into the school year."));
-		//listContent.add(new News("But where can I check the announcements in the meantime?", "", "Just click here to open the announcements in your phone's browser."));
-		//listContent.add(new News("You're awesome! How can I ever repay you?", "", "Glad to be of help! I'd appreciate it if you could rate this app on the Google Play Store. Check the sidebar for the link."));
-		
-		//android.R.layout.simple_list_item_1
 		myList = (PullToRefreshListView) findViewById(R.id.announcements_list);
 		adapter = new NewsAdapter(this, R.layout.news_row, listContent);
 		myList.setAdapter(adapter);
@@ -94,9 +92,7 @@ public class AnnouncementsActivity extends SlidingFragmentActivity {
 				new DownloadAnnouncementsTask().execute("");
 			}
 		});
-		new DownloadAnnouncementsTask().execute("");
-		
-		
+		new DownloadAnnouncementsTask().execute("");		
 	}
 
 	@Override
@@ -135,12 +131,10 @@ public class AnnouncementsActivity extends SlidingFragmentActivity {
 			try {
 				listContent.clear();
 				
-				doc = Jsoup.parse(new URL(url).openStream(), "ISO-8859-1", url);
-				//doc = Jsoup.connect(url).timeout(7000).get();
+				doc = Jsoup.parse(new URL(ANNOUNCEMENTS_URL).openStream(), "ISO-8859-1", ANNOUNCEMENTS_URL);
 				Elements divs = doc.select("div");
 				String tempSubtitle = "";
 				for(Element div : divs) {
-					//System.out.println("asdf Checking div class: " + div.className() + ", " + div.text());
 					if(div.className().equals("title")) {
 						listContent.add(new SectionItem(div.text()));
 					}
@@ -148,32 +142,12 @@ public class AnnouncementsActivity extends SlidingFragmentActivity {
 						tempSubtitle = div.text();
 					}
 					else if(div.className().equals("dets")) {
-						listContent.add(new News(tempSubtitle, "http://greco.bcp.org/webs/svc/anc/daily.php", div.text()));
+						listContent.add(new News(tempSubtitle, ANNOUNCEMENTS_URL, div.text().replaceAll("More Info...", "")));
 					}
 					else {
-						// wat how did we get here
+						Log.e("announcements", "Unknown announements error");
 					}
 				}
-				/*
-				Elements allDays = doc.select("dl.calendar-day");
-				for(Element oneDay : allDays) {
-					System.out.println("SOUP elem: " + oneDay.text());
-					String month = oneDay.select("dt span.month").first().text();
-					String day = oneDay.select("dt span.date").first().text();
-					String dayOfWeek = oneDay.select("dt span.day").first().text();
-					String textFull = "";
-					Elements texts = oneDay.select("dd");
-					for(Element text : texts) {
-						textFull += text.text() + "\n";
-					}
-					
-					if(textFull.endsWith("\n")) {
-						textFull = textFull.substring(0, textFull.length() - 1);
-					}
-					listContent.add(new Event(month, day, dayOfWeek, 
-							textFull.replaceAll("Location:", "\nLocation:").replaceAll("Time:", "\nTime:").replaceAll("Visit this Link", "")));
-							*/
-				
 				return "Success";
 			} catch (IOException e) {
 				e.printStackTrace();
@@ -186,7 +160,6 @@ public class AnnouncementsActivity extends SlidingFragmentActivity {
 			if(!isOnline()) {
 				displayCrouton("NO INTERNET CONNECTION", 3000, Style.ALERT);
 			} else {
-				//displayCrouton("UPDATED", 1000, Style.INFO);
 				refreshList();
 			}
 			myList.onRefreshComplete();

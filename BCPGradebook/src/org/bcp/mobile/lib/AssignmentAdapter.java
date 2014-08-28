@@ -69,31 +69,6 @@ public class AssignmentAdapter extends ArrayAdapter<Item> {
 			}
 		}
 		return v;
-    	/*
-        View row = convertView;
-        AssignmentHolder holder = null;
-        
-        if(row == null) {
-            LayoutInflater inflater = ((Activity)context).getLayoutInflater();
-            row = inflater.inflate(layoutResourceId, parent, false);
-            
-            holder = new AssignmentHolder();
-            holder.name = (TextView) row.findViewById(R.id.asg_name);
-            holder.percent = (TextView) row.findViewById(R.id.asg_percent);
-            holder.letter = (ImageView) row.findViewById(R.id.asg_letter);
-            
-            row.setTag(holder);
-        }
-        else {
-            holder = (AssignmentHolder)row.getTag();
-        }
-        
-        Assignment asg = data[position];
-
-        holder.name.setText(asg.name);
-        holder.percent.setText(decimalFormat.format(asg.score) + " / " + decimalFormat.format(asg.total));
-        holder.letter.setImageResource(getIdFromGrade(asg.letter));
-        return row;*/
     }
     
     @Override

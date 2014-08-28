@@ -64,7 +64,7 @@ public class EventsAdapter extends ArrayAdapter<Event> {
         return data.length;
     }
     
-    static class EventsHolder {
+    private static class EventsHolder {
         TextView title;
         TextView date;
     }

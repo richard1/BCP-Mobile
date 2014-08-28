@@ -1,7 +1,7 @@
 package org.bcp.mobile.lib;
 
-public class Assignment implements Item{
-    //public int id;
+public class Assignment implements Item {
+
     public String type;
     public String course;
     public String name;
@@ -14,9 +14,11 @@ public class Assignment implements Item{
     public int semester;
     public String weight;
     
-    public Assignment(String type, String course, String name, String date, String category, double score, double total, String letter, String percent, int semester, String weight) {
+    public Assignment(String type, String course, String name, String date, 
+    				  String category, double score, double total, String letter, 
+    				  String percent, int semester, String weight) {
         super();
-        //this.id = id;
+
         this.type = type;
         this.course = course;
         this.name = name;

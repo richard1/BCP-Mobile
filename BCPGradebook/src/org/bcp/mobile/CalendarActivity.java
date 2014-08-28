@@ -37,17 +37,19 @@ import android.widget.ListView;
 import android.widget.AdapterView.OnItemClickListener;
 
 public class CalendarActivity extends SlidingFragmentActivity {
-	MenuListFragment mFrag;
-	SlidingMenu sm;
-	String calUrl1 = "http://www.bcp.org/calendars/index.aspx?&StartDate=";
-	String calUrl2 = "http://www.bcp.org/calendars/index.aspx?&StartDate=";
-	String moduleThing = "&ModuleID=203:228:255:199:202:312:314:379:475:480:490:501:255:377";
-	ArrayList<Event> events = new ArrayList<Event>();
-	PullToRefreshListView myList;
-	EventsAdapter adapter;
-	OnItemClickListener listener;
-	int month;
-	int year;
+	
+	private static final String CALENDAR_MODULE = "&ModuleID=203:228:255:199:202:312:314:379:475:480:490:501:255:377";
+
+	private MenuListFragment mFrag;
+	private SlidingMenu sm;
+	private String calUrl1 = "http://www.bcp.org/calendars/index.aspx?&StartDate=";
+	private String calUrl2 = "http://www.bcp.org/calendars/index.aspx?&StartDate=";
+	private ArrayList<Event> events = new ArrayList<Event>();
+	private PullToRefreshListView myList;
+	private EventsAdapter adapter;
+	private OnItemClickListener listener;
+	private int month;
+	private int year;
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -59,12 +61,12 @@ public class CalendarActivity extends SlidingFragmentActivity {
 		Calendar c = Calendar.getInstance(); 
 		month = c.get(Calendar.MONTH) + 1; // January -> 0, December -> 11 ... this corrects it		
 		year = c.get(Calendar.YEAR);
-		calUrl1 += month + "/1/" + year + moduleThing;
+		calUrl1 += month + "/1/" + year + CALENDAR_MODULE;
 		if(month == 12) {
-			calUrl2 += "1/1/" + (year + 1) + moduleThing;
+			calUrl2 += "1/1/" + (year + 1) + CALENDAR_MODULE;
 		}
 		else {
-			calUrl2 += (month + 1) + "/1/" + year + moduleThing;
+			calUrl2 += (month + 1) + "/1/" + year + CALENDAR_MODULE;
 		}
 		
 		displayCrouton("GETTING EVENTS IN " + getStringMonth(month) + "...", 3000, Style.INFO);
@@ -166,7 +168,6 @@ public class CalendarActivity extends SlidingFragmentActivity {
 			if(!isOnline()) {
 				displayCrouton("NO INTERNET CONNECTION", 3000, Style.ALERT);
 			} else {
-				//displayCrouton("UPDATED", 1000, Style.INFO);
 				refreshList();
 			}
 			myList.onRefreshComplete();

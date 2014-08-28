@@ -51,7 +51,6 @@ public class XmlParser {
     private List<Entry> readFeed(XmlPullParser parser) throws XmlPullParserException, IOException {
 
         parser.require(XmlPullParser.START_TAG, ns, "rss");
-        //parser.require(XmlPullParser.START_TAG, ns, "channel");
         while (parser.next() != XmlPullParser.END_TAG) {
             if (parser.getEventType() != XmlPullParser.START_TAG) {
                 continue;
@@ -139,15 +138,6 @@ public class XmlParser {
     private String readLink(XmlPullParser parser) throws IOException, XmlPullParserException {
         String link = "";
         parser.require(XmlPullParser.START_TAG, ns, "link");
-        /*
-        String tag = parser.getName();
-        String relType = parser.getAttributeValue(null, "rel");
-        if (tag.equals("link")) {
-            if (relType.equals("alternate")) {
-                link = parser.getAttributeValue(null, "href");
-                parser.nextTag();
-            }
-        }*/
         link = readText(parser);
         parser.require(XmlPullParser.END_TAG, ns, "link");
         return link;

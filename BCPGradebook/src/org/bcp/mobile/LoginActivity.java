@@ -1,15 +1,7 @@
 package org.bcp.mobile;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.io.StringWriter;
-import java.io.Writer;
-import java.net.HttpURLConnection;
-import java.net.URL;
-
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.auth.AuthScope;
@@ -67,9 +59,6 @@ public class LoginActivity extends Activity {
 	private View mLoginFormView;
 	private View mLoginStatusView;
 	private TextView mLoginStatusMessageView;
-	
-	// Other values.
-	//private boolean wantsRemember = false;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -156,11 +145,6 @@ public class LoginActivity extends Activity {
 
 		// Store values at the time of the login attempt.
 		mEmail = mEmailView.getText().toString().toLowerCase();
-		/*
-		if(!mEmail.contains("@")) {
-			mEmail += "@bcp.org";
-		}
-		*/
 		mEmail.replaceAll("@bcp.org", "");
 		mPassword = mPasswordView.getText().toString();
 		
@@ -169,8 +153,6 @@ public class LoginActivity extends Activity {
 		boolean cancel = false;
 		View focusView = null;
 		
-		System.out.println("json checkpoint 1");
-
 		// Check for a valid password.
 		if (TextUtils.isEmpty(mPassword)) {
 			mPasswordView.setError(getString(R.string.error_field_required));
@@ -185,8 +167,6 @@ public class LoginActivity extends Activity {
 			cancel = true;
 		}
 		
-		System.out.println("json checkpoint 2");
-
 		if (cancel) {
 			// There was an error; don't attempt login and focus the first
 			// form field with an error.
@@ -241,12 +221,6 @@ public class LoginActivity extends Activity {
 			mLoginFormView.setVisibility(show ? View.GONE : View.VISIBLE);
 		}
 	}
-	/*
-	public void onCheckboxClicked(View view) {
-	    // Is the view now checked?
-	    boolean checked = ((CheckBox) view).isChecked();
-	    wantsRemember = checked;
-	}*/
 
 	/**
 	 * Represents an asynchronous login/registration task used to authenticate
@@ -256,8 +230,6 @@ public class LoginActivity extends Activity {
 		@Override
 		protected Boolean doInBackground(Void... params) {
 			try {
-				//return loadPasswordFromNetwork("http://didjem.com/bell_api/login.php?username=" + mEmail + "&password=" + mPassword);
-				//return loadPasswordFromNetwork("http://brycepauken.com/api/3539/login.php?username=" + mEmail + "&password=" + mPassword);
 				String theURL = "https://" + mEmail + ":" + mPassword + "@" + "kingfi.sh/api/bcpmobile/v1/login";
 				System.out.println("json login url: " + theURL);
 				return loadPasswordFromNetwork(theURL);
@@ -265,7 +237,6 @@ public class LoginActivity extends Activity {
 				e.printStackTrace();
 				return false;
 			}
-			// TODO: register the new account here.
 		}
 
 		@Override
@@ -274,12 +245,10 @@ public class LoginActivity extends Activity {
 			showProgress(false);
 
 			if (success) {
-				//if(wantsRemember) {
-					// Store encrypted password.
-					Editor editorPass = getSharedPreferences("password", MODE_PRIVATE).edit();
-					editorPass.putString("password", mEncryptedPassword);
-					editorPass.commit();
-				//}
+				// store encrypted password
+				Editor editorPass = getSharedPreferences("password", MODE_PRIVATE).edit();
+				editorPass.putString("password", mEncryptedPassword);
+				editorPass.commit();
 				
 				// Store username.
 				Editor editorUser = getSharedPreferences("username", MODE_PRIVATE).edit();
@@ -296,7 +265,6 @@ public class LoginActivity extends Activity {
 				overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
 				finish();
 			} else {
-				//mPasswordView.setError(getString(R.string.error_incorrect_password));
 				mPasswordView.setError("Incorrect password. If not, something may be down");
 				mPasswordView.requestFocus();
 			}
@@ -315,16 +283,13 @@ public class LoginActivity extends Activity {
 		String json = "";
 		try {
 			json = downloadUrl(urlString);
-			//json = convertStreamToString(stream);
 		} finally {
 			if(stream != null)
 				stream.close();
 		}
 		JSONObject result = new JSONObject(json);
 		System.out.println("JSON RES: " +result.toString());
-		//JSONObject dat = result.getJSONObject("data");
-		//System.out.println("JSON DAT: " +dat.toString());
-		//if(result.getInt("status") != 1) { // error
+
 		if(result.has("error") && result.getString("error") != null) {
 			System.out.println("ERR: " + result.getString("error"));
 			return false;
@@ -363,46 +328,7 @@ public class LoginActivity extends Activity {
             httpclient.getConnectionManager().shutdown();
         }
         return output;
-        /*
-		System.out.println("json checkpoint 3.5");
-		URL url = new URL(urlString);
-		HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-		System.out.println("json checkpoint 3.6");
-		conn.setReadTimeout(10000);
-	    conn.setConnectTimeout(15000);
-	    conn.setRequestMethod("GET");
-	    conn.setDoInput(true);
-	    conn.setRequestProperty("User-Agent", "Mozilla/5.0 ( compatible ) ");
-	    conn.setRequestProperty("Accept", "*");
-	    conn.setDoOutput(true);
-	    // Starts the query
-	    System.out.println("json checkpoint 3.7");
-	    conn.connect();
-	    System.out.println("json checkpoint 3.8");
-	    int status = conn.getResponseCode();
-	    System.out.println("json response: " + status);
-	    return conn.getInputStream();*/
 	}
-	
-	private static String convertStreamToString(InputStream inputStream) throws IOException { // not used
-        if (inputStream != null) {
-            Writer writer = new StringWriter();
-
-            char[] buffer = new char[1024];
-            try {
-                Reader reader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"),1024);
-                int n;
-                while ((n = reader.read(buffer)) != -1) {
-                    writer.write(buffer, 0, n);
-                }
-            } finally {
-                inputStream.close();
-            }
-            return writer.toString();
-        } else {
-            return "";
-        }
-    }
 	
 	public void displayCrouton(String text, int timeMilli, Style style) {
 		Style style1;

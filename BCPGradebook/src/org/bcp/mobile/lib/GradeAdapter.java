@@ -61,7 +61,6 @@ public class GradeAdapter extends ArrayAdapter<Grade>{
         Grade grade = data[position];
         
         
-        //holder.subtext.setText(grade.getPercentWithExtra()); // was grade.subtitle
         String subtitleText = grade.getPercentWithExtra();
 	    Spannable WordtoSpan = new SpannableString(subtitleText);
 	    
