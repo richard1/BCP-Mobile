@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.Calendar;
 
 import org.bcp.mobile.lib.EventsAdapter;
+import org.bcp.mobile.lib.Item;
+import org.bcp.mobile.lib.SectionItem;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -12,6 +14,7 @@ import org.jsoup.select.Elements;
 
 import org.bcp.mobile.R;
 
+import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuItem;
 import com.handmark.pulltorefresh.library.PullToRefreshBase;
 import com.handmark.pulltorefresh.library.PullToRefreshListView;
@@ -44,12 +47,15 @@ public class CalendarActivity extends SlidingFragmentActivity {
 	private SlidingMenu sm;
 	private String calUrl1 = "http://www.bcp.org/calendars/index.aspx?&StartDate=";
 	private String calUrl2 = "http://www.bcp.org/calendars/index.aspx?&StartDate=";
-	private ArrayList<Event> events = new ArrayList<Event>();
+	private ArrayList<Item> events = new ArrayList<Item>();
 	private PullToRefreshListView myList;
 	private EventsAdapter adapter;
 	private OnItemClickListener listener;
 	private int month;
 	private int year;
+	private int dayOfMonth;
+	private int closestItem = 0;
+	private int closestDay = -1;
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -61,6 +67,7 @@ public class CalendarActivity extends SlidingFragmentActivity {
 		Calendar c = Calendar.getInstance(); 
 		month = c.get(Calendar.MONTH) + 1; // January -> 0, December -> 11 ... this corrects it		
 		year = c.get(Calendar.YEAR);
+		dayOfMonth = c.get(Calendar.DATE);
 		calUrl1 += month + "/1/" + year + CALENDAR_MODULE;
 		if(month == 12) {
 			calUrl2 += "1/1/" + (year + 1) + CALENDAR_MODULE;
@@ -116,7 +123,8 @@ public class CalendarActivity extends SlidingFragmentActivity {
 			Document doc;
 			try {
 				events.clear();
-				
+				events.add(new SectionItem(monthToString(month) + " " + year));
+				int numEvents = 0;
 				doc = Jsoup.connect(calUrl1).get();
 				Elements allDays = doc.select("dl.calendar-day");
 				for(Element oneDay : allDays) {
@@ -135,8 +143,14 @@ public class CalendarActivity extends SlidingFragmentActivity {
 					}
 					events.add(new Event(month, day, dayOfWeek, 
 							textFull.replaceAll("Location:", "\nLocation:").replaceAll("Time:", "\nTime:").replaceAll("Visit this Link", "")));
+					numEvents++;
+					if(Math.abs(dayOfMonth - Integer.parseInt(day)) < Math.abs(dayOfMonth - closestDay)) {
+						closestItem = numEvents + 1;
+						closestDay = Integer.parseInt(day);
+					}
 				}
 				
+				events.add(new SectionItem(monthToString((month % 12) + 1) + " " + (month == 12 ? year + 1 : year)));
 				doc = Jsoup.connect(calUrl2).get();
 				allDays = doc.select("dl.calendar-day");
 				for(Element oneDay : allDays) {
@@ -173,6 +187,10 @@ public class CalendarActivity extends SlidingFragmentActivity {
 			myList.onRefreshComplete();
 			super.onPostExecute(result);
 		}
+	}
+	
+	public void scrollToPosition(int position) {
+		myList.getRefreshableView().smoothScrollToPosition(position);
 	}
 	
 	public boolean isOnline() {
@@ -219,10 +237,22 @@ public class CalendarActivity extends SlidingFragmentActivity {
 			toggle();
 		}
 	}
+	
+	@Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        menu.add("Scroll")
+            .setIcon(R.drawable.calendar_today)
+            .setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
+        return true;
+    }
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		// Handle item selection
+		if(item.getTitle().equals("Scroll")) {
+			scrollToPosition(closestItem);
+			return true;
+		}
 		switch (item.getItemId()) {
 			case android.R.id.home:
 				toggle();
@@ -257,7 +287,25 @@ public class CalendarActivity extends SlidingFragmentActivity {
 		return newText;
 	}
 	
-	public class Event {
+	public String monthToString(int month) {
+		switch(month) {
+			case 1: return "January";
+			case 2: return "February";
+			case 3: return "March";
+			case 4: return "April";
+			case 5: return "May";
+			case 6: return "June";
+			case 7: return "July";
+			case 8: return "August";
+			case 9: return "September";
+			case 10: return "October";
+			case 11: return "November";
+			case 12: return "December";
+			default: return "ERROR";
+		}
+	}
+	
+	public class Event implements Item {
 		public String month;
 		public String day;
 		public String dayOfWeek;
@@ -272,6 +320,11 @@ public class CalendarActivity extends SlidingFragmentActivity {
 		
 		public String toString() {
 			return dayOfWeek + ", " +  month + " " + day + ": " + text;
+		}
+
+		@Override
+		public boolean isSection() {
+			return false;
 		}
 	}
 }

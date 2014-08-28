@@ -88,7 +88,8 @@ public class MenuListFragment extends ListFragment {
 				getActivity().overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
 				break;
 			case 5: // About
-	        	about = "By Richard Lin '13, with help from Jonathan Chang '13\n\nInspired by Bryce Pauken '14\n\n" +
+	        	about = "BCP-Mobile - v1.3\n\n" +
+	        			"Made with <3 by Richard Lin '13, with help from Jonathan Chang '13\n\nInspired by Bryce Pauken '14\n\n" +
 		    			"Based on Bryce's BCP Mobile app for iOS, this app was created to provide Android-loving " +
 		    			"Bellarmine students a convenient way to check their grades, view announcements, and more.\n\n" +
 		    			"If you're enjoying this app, please share this with your friends!";
