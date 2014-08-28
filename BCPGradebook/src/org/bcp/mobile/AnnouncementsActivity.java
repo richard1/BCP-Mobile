@@ -139,10 +139,17 @@ public class AnnouncementsActivity extends SlidingFragmentActivity {
 						listContent.add(new SectionItem(div.text()));
 					}
 					else if(div.className().equals("sub_title")) {
-						tempSubtitle = div.text();
+						if(tempSubtitle.length() > 0) {
+							listContent.add(new News(tempSubtitle, ANNOUNCEMENTS_URL, ""));
+							tempSubtitle = div.text();
+						}
+						else {
+							tempSubtitle = div.text();
+						}
 					}
 					else if(div.className().equals("dets")) {
 						listContent.add(new News(tempSubtitle, ANNOUNCEMENTS_URL, div.text().replaceAll("More Info...", "")));
+						tempSubtitle = "";
 					}
 					else {
 						Log.e("announcements", "Unknown announements error");
