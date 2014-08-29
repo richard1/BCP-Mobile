@@ -52,19 +52,6 @@ public class EventsAdapter extends ArrayAdapter<Item> {
 				final TextView sectionView = (TextView) v.findViewById(R.id.list_item_section_text);
 				sectionView.setText(si.getTitle());
 			} else {
-				/*if(row == null) {
-		            LayoutInflater inflater = ((Activity)context).getLayoutInflater();
-		            row = inflater.inflate(layoutResourceId, parent, false);
-		            
-		            holder = new EventsHolder();
-		            holder.title = (TextView) row.findViewById(R.id.event_title);
-		            holder.date = (TextView) row.findViewById(R.id.event_date);
-		            
-		            row.setTag(holder);
-		        }
-		        else {
-		            holder = (EventsHolder)row.getTag();
-		        }*/
 				v = inflater.inflate(R.layout.events_row, null);
 		        Event event = (Event) i;
 		        
@@ -77,7 +64,6 @@ public class EventsAdapter extends ArrayAdapter<Item> {
 		        	date.setText(event.dayOfWeek + ", " +  event.month + " " + event.day);
 			}
 		}
-        System.out.println("asdf sec? " + i.isSection() + ", " + v);
         return v;
     }
     

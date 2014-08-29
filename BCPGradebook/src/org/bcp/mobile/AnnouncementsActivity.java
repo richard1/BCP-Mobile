@@ -48,6 +48,7 @@ public class AnnouncementsActivity extends SlidingFragmentActivity {
 	private PullToRefreshListView myList;
 	private NewsAdapter adapter;
 	private ArrayList<Item> listContent = new ArrayList<Item>();
+	private View announcementsLoading;
 	
 	OnItemClickListener listener = new OnItemClickListener() {
 		@Override
@@ -86,6 +87,9 @@ public class AnnouncementsActivity extends SlidingFragmentActivity {
 		adapter = new NewsAdapter(this, R.layout.news_row, listContent);
 		myList.setAdapter(adapter);
 		myList.setOnItemClickListener(listener);
+		
+		announcementsLoading = findViewById(R.id.announcements_loading);
+		
 		myList.setOnRefreshListener(new OnRefreshListener<ListView>() {
 			@Override
 			public void onRefresh(PullToRefreshBase<ListView> refreshView) {
@@ -179,6 +183,7 @@ public class AnnouncementsActivity extends SlidingFragmentActivity {
 		adapter = new NewsAdapter(this, R.layout.news_row, listContent);
 		myList.setAdapter(adapter);
 		myList.setOnItemClickListener(listener);
+		announcementsLoading.setVisibility(View.GONE);
 	}
 	
 	public boolean isOnline() {

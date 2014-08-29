@@ -12,5 +12,12 @@
 	    android:layout_width="fill_parent"
 	    ptr:ptrHeaderBackground="@color/bcpDark"
 	    ptr:ptrHeaderTextColor="#FFFFFF" />
+    
+    <ProgressBar
+        android:id="@+id/calendar_loading"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:indeterminate="true"
+        android:layout_centerInParent="true" />
 
 </RelativeLayout>

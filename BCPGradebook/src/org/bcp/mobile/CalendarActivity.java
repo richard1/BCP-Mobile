@@ -51,6 +51,7 @@ public class CalendarActivity extends SlidingFragmentActivity {
 	private PullToRefreshListView myList;
 	private EventsAdapter adapter;
 	private OnItemClickListener listener;
+	private View calendarLoading;
 	private int month;
 	private int year;
 	private int dayOfMonth;
@@ -108,6 +109,8 @@ public class CalendarActivity extends SlidingFragmentActivity {
 		myList.setAdapter(adapter);
 		myList.setOnItemClickListener(listener);
 		
+		calendarLoading = findViewById(R.id.calendar_loading);
+		
 		myList.setOnRefreshListener(new OnRefreshListener<ListView>() {
 			@Override
 			public void onRefresh(PullToRefreshBase<ListView> refreshView) {
@@ -125,24 +128,30 @@ public class CalendarActivity extends SlidingFragmentActivity {
 				events.clear();
 				events.add(new SectionItem(monthToString(month) + " " + year));
 				int numEvents = 0;
-				doc = Jsoup.connect(calUrl1).get();
+				doc = Jsoup.connect(calUrl1).timeout(0).get();
 				Elements allDays = doc.select("dl.calendar-day");
-				for(Element oneDay : allDays) {
+				Element oneDay;
+				for(int i = 0; i < allDays.size(); i++) {
+					oneDay = allDays.get(i);
 					System.out.println("SOUP elem: " + oneDay.text());
-					String month = oneDay.select("dt span.month").first().text();
+					//String month = oneDay.select("dt span.month").first().text();
 					String day = oneDay.select("dt span.date").first().text();
 					String dayOfWeek = oneDay.select("dt span.day").first().text();
 					String textFull = "";
 					Elements texts = oneDay.select("dd");
-					for(Element text : texts) {
+					Element text;
+					for(int j = 0; j < texts.size(); j++) {
+						text = texts.get(j);
 						textFull += text.text() + "\n";
 					}
 					
 					if(textFull.endsWith("\n")) {
 						textFull = textFull.substring(0, textFull.length() - 1);
 					}
-					events.add(new Event(month, day, dayOfWeek, 
-							textFull.replaceAll("Location:", "\nLocation:").replaceAll("Time:", "\nTime:").replaceAll("Visit this Link", "")));
+					events.add(new Event(monthToString(month), day, dayOfWeek, textFull
+							.replaceAll("Location:", "\nLocation:")
+							.replaceAll("Time:", "\nTime:")
+							.replaceAll("Visit this Link", "")));
 					numEvents++;
 					if(Math.abs(dayOfMonth - Integer.parseInt(day)) < Math.abs(dayOfMonth - closestDay)) {
 						closestItem = numEvents + 1;
@@ -151,24 +160,29 @@ public class CalendarActivity extends SlidingFragmentActivity {
 				}
 				
 				events.add(new SectionItem(monthToString((month % 12) + 1) + " " + (month == 12 ? year + 1 : year)));
-				doc = Jsoup.connect(calUrl2).get();
+				doc = Jsoup.connect(calUrl2).timeout(0).get();
 				allDays = doc.select("dl.calendar-day");
-				for(Element oneDay : allDays) {
+				for(int i = 0; i < allDays.size(); i++) {
+					oneDay = allDays.get(i);
 					System.out.println("SOUP elem: " + oneDay.text());
-					String month = oneDay.select("dt span.month").first().text();
+					//String month = oneDay.select("dt span.month").first().text();
 					String day = oneDay.select("dt span.date").first().text();
 					String dayOfWeek = oneDay.select("dt span.day").first().text();
 					String textFull = "";
 					Elements texts = oneDay.select("dd");
-					for(Element text : texts) {
+					Element text;
+					for(int j = 0; j < texts.size(); j++) {
+						text = texts.get(j);
 						textFull += text.text() + "\n";
 					}
 					
 					if(textFull.endsWith("\n")) {
 						textFull = textFull.substring(0, textFull.length() - 1);
 					}
-					events.add(new Event(month, day, dayOfWeek, 
-							textFull.replaceAll("Location:", "\nLocation:").replaceAll("Time:", "\nTime:").replaceAll("Visit this Link", "")));
+					events.add(new Event(monthToString((month % 12) + 1), day, dayOfWeek, textFull
+							.replaceAll("Location:", "\nLocation:")
+							.replaceAll("Time:", "\nTime:")
+							.replaceAll("Visit this Link", "")));
 				}
 				return "Success";
 			} catch (IOException e) {
@@ -190,7 +204,7 @@ public class CalendarActivity extends SlidingFragmentActivity {
 	}
 	
 	public void scrollToPosition(int position) {
-		myList.getRefreshableView().smoothScrollToPosition(position);
+		myList.getRefreshableView().smoothScrollToPositionFromTop(position, 0);
 	}
 	
 	public boolean isOnline() {
@@ -203,6 +217,7 @@ public class CalendarActivity extends SlidingFragmentActivity {
 		adapter = new EventsAdapter(this, R.layout.events_row, events);
 		myList.setAdapter(adapter);
 		myList.setOnItemClickListener(listener);
+		calendarLoading.setVisibility(View.GONE);
 	}
 		
 	public void displayCrouton(String text, int timeMilli, Style style) {

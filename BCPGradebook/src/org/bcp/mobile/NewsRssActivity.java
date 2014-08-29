@@ -47,6 +47,7 @@ public class NewsRssActivity extends SlidingFragmentActivity {
 	private PullToRefreshListView myList;
 	private NewsAdapter adapter;
 	private ArrayList<Item> listContent = new ArrayList<Item>();
+	private View newsLoading;
 	
 	private OnItemClickListener listener = new OnItemClickListener() {
 		@Override
@@ -90,6 +91,8 @@ public class NewsRssActivity extends SlidingFragmentActivity {
 		adapter = new NewsAdapter(this, R.layout.news_row, listContent);
 		myList.setAdapter(adapter);
 		myList.setOnItemClickListener(listener);
+		
+		newsLoading = findViewById(R.id.news_loading);
 		
 		myList.setOnRefreshListener(new OnRefreshListener<ListView>() {
 			@Override
@@ -206,6 +209,7 @@ public class NewsRssActivity extends SlidingFragmentActivity {
 		adapter = new NewsAdapter(this, R.layout.news_row, listContent);
 		myList.setAdapter(adapter);
 		myList.setOnItemClickListener(listener);
+		newsLoading.setVisibility(View.GONE);
 	}
 	
 	public void displayCrouton(String text, int timeMilli, Style style) {
