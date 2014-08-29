@@ -21,7 +21,5 @@
 	    android:layout_height="fill_parent"
 	    android:id="@+id/event_date"
 	    android:textSize="16dp"
-	    android:singleLine="true"
-	    android:ellipsize="marquee" 
 	    android:textStyle="italic" />
 </LinearLayout>

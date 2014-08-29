@@ -60,13 +60,27 @@ public class EventsAdapter extends ArrayAdapter<Item> {
 
 		        if(title != null)
 		        	title.setText(event.text);
-		        if(date != null)
-		        	date.setText(event.dayOfWeek + ", " +  event.month + " " + event.day);
+		        if(date != null) {
+		        	String subtitleText = "";
+		        	if(event.location != null && event.time != null) {
+		        		subtitleText = event.location + "  •  " + event.time;
+		        	}
+		        	else if(event.location != null) {
+		        		subtitleText = event.location;
+		        	}
+		        	else if(event.time != null) {
+		        		subtitleText = event.time;
+		        	}
+		        	else {
+		        		date.setVisibility(View.GONE);
+		        	}
+		        	date.setText(subtitleText);
+		        }
 			}
 		}
         return v;
     }
-    
+        
     @Override
     public int getCount() {
         return data.length;

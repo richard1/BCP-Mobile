@@ -126,7 +126,6 @@ public class CalendarActivity extends SlidingFragmentActivity {
 			Document doc;
 			try {
 				events.clear();
-				events.add(new SectionItem(monthToString(month) + " " + year));
 				int numEvents = 0;
 				doc = Jsoup.connect(calUrl1).timeout(0).get();
 				Elements allDays = doc.select("dl.calendar-day");
@@ -134,55 +133,58 @@ public class CalendarActivity extends SlidingFragmentActivity {
 				for(int i = 0; i < allDays.size(); i++) {
 					oneDay = allDays.get(i);
 					System.out.println("SOUP elem: " + oneDay.text());
-					//String month = oneDay.select("dt span.month").first().text();
 					String day = oneDay.select("dt span.date").first().text();
 					String dayOfWeek = oneDay.select("dt span.day").first().text();
-					String textFull = "";
+					
 					Elements texts = oneDay.select("dd");
 					Element text;
-					for(int j = 0; j < texts.size(); j++) {
-						text = texts.get(j);
-						textFull += text.text() + "\n";
-					}
-					
-					if(textFull.endsWith("\n")) {
-						textFull = textFull.substring(0, textFull.length() - 1);
-					}
-					events.add(new Event(monthToString(month), day, dayOfWeek, textFull
-							.replaceAll("Location:", "\nLocation:")
-							.replaceAll("Time:", "\nTime:")
-							.replaceAll("Visit this Link", "")));
+					Element location;
+					Element time;
+					events.add(new SectionItem(monthToString(month) + " " + day + "  •  " + dayOfWeek +
+							getWeekdaySuffix(dayOfWeek.charAt(dayOfWeek.length() - 1))));
 					numEvents++;
 					if(Math.abs(dayOfMonth - Integer.parseInt(day)) < Math.abs(dayOfMonth - closestDay)) {
-						closestItem = numEvents + 1;
+						closestItem = numEvents;
 						closestDay = Integer.parseInt(day);
+					}
+					for(int j = 0; j < texts.size(); j++) {
+						text = texts.get(j);
+						location = text.select("h5 span.location").first();
+						time = text.select("h5 span.time").first();
+						String locationText = location == null ? null : location.text().replaceFirst("Location: ", "");
+						String timeText = time == null ? null : time.text().replaceFirst("Time: ", "");
+						events.add(new Event(monthToString(month), day, dayOfWeek, 
+								locationText,
+								timeText,
+								text.select("h4").first().text()));
+						numEvents++;
 					}
 				}
 				
-				events.add(new SectionItem(monthToString((month % 12) + 1) + " " + (month == 12 ? year + 1 : year)));
 				doc = Jsoup.connect(calUrl2).timeout(0).get();
 				allDays = doc.select("dl.calendar-day");
 				for(int i = 0; i < allDays.size(); i++) {
 					oneDay = allDays.get(i);
 					System.out.println("SOUP elem: " + oneDay.text());
-					//String month = oneDay.select("dt span.month").first().text();
 					String day = oneDay.select("dt span.date").first().text();
 					String dayOfWeek = oneDay.select("dt span.day").first().text();
-					String textFull = "";
 					Elements texts = oneDay.select("dd");
 					Element text;
+					Element location;
+					Element time;
+					events.add(new SectionItem(monthToString((month % 12) + 1) + " " + day + "  •  " + dayOfWeek +
+							getWeekdaySuffix(dayOfWeek.charAt(dayOfWeek.length() - 1))));
 					for(int j = 0; j < texts.size(); j++) {
 						text = texts.get(j);
-						textFull += text.text() + "\n";
+						location = text.select("h5 span.location").first();
+						time = text.select("h5 span.time").first();
+						String locationText = location == null ? null : location.text().replaceFirst("Location: ", "");
+						String timeText = time == null ? null : time.text().replaceFirst("Time: ", "");
+						events.add(new Event(monthToString((month % 12) + 1), day, dayOfWeek, 
+								locationText,
+								timeText,
+								text.select("h4").first().text()));
 					}
-					
-					if(textFull.endsWith("\n")) {
-						textFull = textFull.substring(0, textFull.length() - 1);
-					}
-					events.add(new Event(monthToString((month % 12) + 1), day, dayOfWeek, textFull
-							.replaceAll("Location:", "\nLocation:")
-							.replaceAll("Time:", "\nTime:")
-							.replaceAll("Visit this Link", "")));
 				}
 				return "Success";
 			} catch (IOException e) {
@@ -296,11 +298,11 @@ public class CalendarActivity extends SlidingFragmentActivity {
 		return "";
 	}
 	
-	public String formatEventText(String theText) {
+	/*public String formatEventText(String theText) {
 		String newText = theText;
 		newText.replaceAll("Location:", "\nLocation:").replaceAll("Time:", "\nTime:").replaceAll("Visit this Link", "");
 		return newText;
-	}
+	}*/
 	
 	public String monthToString(int month) {
 		switch(month) {
@@ -320,16 +322,33 @@ public class CalendarActivity extends SlidingFragmentActivity {
 		}
 	}
 	
+	private String getWeekdaySuffix(char c) {
+    	// honestly surprised this worked out
+    	switch(c) {
+    		case 'n': return "day";		// Sunday, Monday
+    		case 'e': return "sday"; 	// Tuesday
+    		case 'd': return "nesday";	// Wednesday
+    		case 'u': return "rsday";	// Thursday
+    		case 'i': return "day";		// Friday
+    		case 't': return "urday";	// Saturday
+    		default:  return "";
+    	}
+    }
+	
 	public class Event implements Item {
 		public String month;
 		public String day;
 		public String dayOfWeek;
+		public String location;
+		public String time;
 		public String text;
 		
-		public Event(String month, String day, String dayOfWeek, String text) {
+		public Event(String month, String day, String dayOfWeek, String location, String time, String text) {
 			this.month = month;
 			this.day = day;
 			this.dayOfWeek = dayOfWeek;
+			this.location = location;
+			this.time = time;
 			this.text = text;
 		}
 		
