@@ -4,7 +4,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import org.bcp.mobile.lib.Item;
@@ -178,7 +181,30 @@ public class NewsRssActivity extends SlidingFragmentActivity {
 		listContent.clear();
 		int count = 0;
 		for (Entry entry : entries) { 
-			listContent.add(new News(entry.title, entry.link, "Posted on " + entry.summary.substring(0, entry.summary.indexOf(":") - 3)));
+			String rawDate = entry.summary.substring(0, entry.summary.indexOf(":") - 3);
+			
+			// it's ugly, but we gotta do what we gotta do
+			String dateFormatted = rawDate
+					.replaceFirst("Mon", "Monday")
+					.replaceFirst("Tue", "Tuesday")
+					.replaceFirst("Wed", "Wednesday")
+					.replaceFirst("Thu", "Thursday")
+					.replaceFirst("Fri", "Friday")
+					.replaceFirst("Sat", "Saturday")
+					.replaceFirst("Sun", "Sunday")
+					.replaceFirst("Jan", "January")
+					.replaceFirst("Feb", "February")
+					.replaceFirst("Mar", "March")
+					.replaceFirst("Apr", "April")
+					.replaceFirst("Jun", "June")
+					.replaceFirst("Jul", "July")
+					.replaceFirst("Aug", "August")
+					.replaceFirst("Sep", "September")
+					.replaceFirst("Oct", "October")
+					.replaceFirst("Nov", "November")
+					.replaceFirst("Dec", "December");
+			
+			listContent.add(new News(entry.title, entry.link, dateFormatted));
 			count++;
 			if(count >= MAX_NEWS_ARTICLES) {
 				break;
