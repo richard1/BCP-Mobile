@@ -50,10 +50,17 @@ public class NewsAdapter extends ArrayAdapter<Item> {
 				final TextView title = (TextView) v.findViewById(R.id.news_title);
 				final TextView date = (TextView) v.findViewById(R.id.news_date);
 				
-				if (title != null) 
+				if (title != null) {
 					title.setText(news.title);
-				if(date != null)
-					date.setText(news.date);
+				}
+				if(date != null) {
+					if(news.date != null && news.date.length() > 0) {
+						date.setText(news.date);
+					}
+					else {
+						date.setVisibility(View.GONE);
+					}
+				}
 			}
 		}
 		return v;

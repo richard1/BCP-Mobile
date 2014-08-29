@@ -88,13 +88,12 @@ public class MenuListFragment extends ListFragment {
 				getActivity().overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
 				break;
 			case 5: // About
-	        	about = "BCP-Mobile - v1.3\n\n" +
-	        			"Made with <3 by Richard Lin '13, with help from Jonathan Chang '13\n\nInspired by Bryce Pauken '14\n\n" +
+	        	about = "Made with ♥ by Richard Lin '13, with help from Jonathan Chang '13\n\nInspired by Bryce Pauken '14\n\n" +
 		    			"Based on Bryce's BCP Mobile app for iOS, this app was created to provide Android-loving " +
 		    			"Bellarmine students a convenient way to check their grades, view announcements, and more.\n\n" +
 		    			"If you're enjoying this app, please share this with your friends!";
 		        builder = new AlertDialog.Builder(getActivity());
-		        builder.setTitle("About");
+		        builder.setTitle("BCP-Mobile v1.3");
 		        builder.setMessage(about);
 		        builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
 		            public void onClick(DialogInterface dialog, int id) {
@@ -110,8 +109,8 @@ public class MenuListFragment extends ListFragment {
 		        break;
 			case 6:
 				Intent emailIntent = new Intent(Intent.ACTION_SENDTO, Uri.fromParts("mailto",
-						"richwierdo@gmail.com,jonathan.chang13@gmail.com", null));
-				emailIntent.putExtra(Intent.EXTRA_SUBJECT, "BCP Mobile Comment/Question/Suggestion");
+						"me@richardgl.in", null));
+				emailIntent.putExtra(Intent.EXTRA_SUBJECT, "BCP-Mobile Feedback");
 				startActivity(Intent.createChooser(emailIntent, "Send email..."));
 				break;
 			case 7: // Rate
