@@ -131,7 +131,7 @@ public class AnnouncementsActivity extends SlidingFragmentActivity {
 			try {
 				listContent.clear();
 				
-				doc = Jsoup.parse(new URL(ANNOUNCEMENTS_URL).openStream(), "ISO-8859-1", ANNOUNCEMENTS_URL);
+				doc = Jsoup.parse(new URL(ANNOUNCEMENTS_URL).openStream(), "utf-8", ANNOUNCEMENTS_URL);
 				Elements divs = doc.select("div");
 				String tempSubtitle = "";
 				for(Element div : divs) {
