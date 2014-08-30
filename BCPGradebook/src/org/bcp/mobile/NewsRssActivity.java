@@ -6,10 +6,10 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
-
 import org.bcp.mobile.lib.Item;
 import org.bcp.mobile.lib.News;
 import org.bcp.mobile.lib.NewsAdapter;
+import org.bcp.mobile.lib.SectionItem;
 import org.bcp.mobile.lib.XmlParser;
 import org.bcp.mobile.lib.XmlParser.Entry;
 import org.json.JSONException;
@@ -182,6 +182,9 @@ public class NewsRssActivity extends SlidingFragmentActivity {
 
 		listContent.clear();
 		int count = 0;
+		
+		String oldMonthYear = "";
+		
 		for (Entry entry : entries) { 
 			String rawDate = entry.summary.substring(0, entry.summary.indexOf(":") - 3);
 			
@@ -205,7 +208,14 @@ public class NewsRssActivity extends SlidingFragmentActivity {
 					.replaceFirst("Oct", "October")
 					.replaceFirst("Nov", "November")
 					.replaceFirst("Dec", "December");
-			
+			int spaceCount = dateFormatted.length() - dateFormatted.replace(" ", "").length();
+			if(spaceCount >= 2 && dateFormatted.length() >= 3) {
+				String newMonthYear = dateFormatted.substring(dateFormatted.indexOf(' ', dateFormatted.indexOf(' ') + 1));
+				if(!oldMonthYear.equals(newMonthYear)) {
+					oldMonthYear = newMonthYear;
+					listContent.add(new SectionItem(newMonthYear));
+				}
+			}
 			listContent.add(new News(entry.title, entry.link, dateFormatted));
 			count++;
 			if(count >= MAX_NEWS_ARTICLES) {
