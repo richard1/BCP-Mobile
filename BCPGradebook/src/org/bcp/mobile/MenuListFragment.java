@@ -49,6 +49,7 @@ public class MenuListFragment extends ListFragment {
 		adapter.add(new SampleItem("About", R.drawable.info));
 		adapter.add(new SampleItem("Contact Us", R.drawable.mail));
 		adapter.add(new SampleItem("Rate", R.drawable.heart));
+		adapter.add(new SampleItem("Settings", R.drawable.gear));
 		adapter.add(new SampleItem("Log Out", R.drawable.directional_left));
 		setListAdapter(adapter);
 	}
@@ -118,7 +119,10 @@ public class MenuListFragment extends ListFragment {
             			Uri.parse("https://play.google.com/store/apps/details?id=org.bcp.mobile"));
             	startActivity(browserIntent);
 				break;
-	        case 8:
+			case 8: // Settings
+				Toast.makeText(getActivity(), "Coming soon!", Toast.LENGTH_SHORT).show();
+				break;
+	        case 9: // Log out
 	    		new DatabaseHandler(getActivity()).deleteAll();
 	    		getActivity().getSharedPreferences("username", Context.MODE_PRIVATE).edit().clear().commit();
 	    		getActivity().getSharedPreferences("password", Context.MODE_PRIVATE).edit().clear().commit();
