@@ -15,6 +15,23 @@ import android.widget.Toast;
 
 public class NotificationService extends Service {
 	
+	// GUN = Grades Update Notification
+	public static final int GUN_FIFTEEN_MIN = 0;
+	public static final int GUN_THIRTY_MIN = 1;
+	public static final int GUN_ONE_HOUR = 2;
+	public static final int GUN_TWELVE_HOUR = 3;
+	public static final int GUN_ONE_DAY = 4;
+	public static final int GUN_NEVER = 5;
+	
+	public static final CharSequence[] GUN_OPTIONS = {
+			"Every 15 minutes",
+			"Every 30 minutes",
+			"Every hour",
+			"Every morning and evening",
+			"Every noon",
+			"Turn off notifications"
+	};
+	
 	private static final int GRADES_NOTIF_ID = 254;
 	
 	private static String coursesUpdatedNewline = "";
@@ -38,9 +55,11 @@ public class NotificationService extends Service {
         
         String[] courses = {"APUSH", "Physics B AP", "WHAP", "Mandarin Chinese 3 Honors"};
         sendNotification(courses);
+        
+        stopSelf();
     }
 	
-	private boolean sendNotification(String newCourse) {
+	private boolean sendSingleNotification(String newCourse) {
 		if(newCourse == null || newCourse.length() == 0) {
 			return false;
 		}

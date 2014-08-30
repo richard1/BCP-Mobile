@@ -1,11 +1,16 @@
 package org.bcp.mobile;
 
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+
 import org.bcp.mobile.lib.DatabaseHandler;
 
 import org.bcp.mobile.R;
 
 import android.annotation.SuppressLint;
+import android.app.AlarmManager;
 import android.app.AlertDialog;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -94,9 +99,9 @@ public class MenuListFragment extends ListFragment {
 		    			"Bellarmine students a convenient way to check their grades, view announcements, and more.\n\n" +
 		    			"If you're enjoying this app, please share this with your friends!";
 		        builder = new AlertDialog.Builder(getActivity());
-		        builder.setTitle("BCP-Mobile v1.3");
+		        builder.setTitle("BCP Mobile v1.3");
 		        builder.setMessage(about);
-		        builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+		        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
 		            public void onClick(DialogInterface dialog, int id) {
 		            }
 		        });
@@ -120,7 +125,51 @@ public class MenuListFragment extends ListFragment {
             	startActivity(browserIntent);
 				break;
 			case 8: // Settings
-				Toast.makeText(getActivity(), "Coming soon!", Toast.LENGTH_SHORT).show();
+				AlertDialog levelDialog;
+				
+				SharedPreferences frequencyPref = getActivity().getSharedPreferences("frequency", Context.MODE_PRIVATE);
+				int currentFrequency = frequencyPref.getInt("frequency", NotificationService.GUN_TWELVE_HOUR);
+				
+                // Creating and Building the Dialog 
+                builder = new AlertDialog.Builder(getActivity());
+                builder.setTitle("Grades Check Frequency");
+                builder.setSingleChoiceItems(NotificationService.GUN_OPTIONS, currentFrequency, new DialogInterface.OnClickListener() {
+	                public void onClick(DialogInterface dialog, int item) {
+	                	SharedPreferences frequencyPref = getActivity().getSharedPreferences("frequency", Context.MODE_PRIVATE);
+	                    switch(item) {
+	                        case NotificationService.GUN_FIFTEEN_MIN:
+	                        	frequencyPref.edit().putInt("frequency", NotificationService.GUN_FIFTEEN_MIN).apply();
+	                        	Toast.makeText(getActivity(), "Loud and clear!  We'll check every 15 minutes.", Toast.LENGTH_SHORT).show();
+	                        	break;
+	                        case NotificationService.GUN_THIRTY_MIN:
+	                        	frequencyPref.edit().putInt("frequency", NotificationService.GUN_THIRTY_MIN).apply();
+	                        	Toast.makeText(getActivity(), "Aye, captain!  We'll check every 30 minutes.", Toast.LENGTH_SHORT).show();
+	                        	break;
+	                        case NotificationService.GUN_ONE_HOUR:
+	                        	frequencyPref.edit().putInt("frequency", NotificationService.GUN_ONE_HOUR).apply();
+	                        	Toast.makeText(getActivity(), "Roger that!  We'll check every hour.", Toast.LENGTH_SHORT).show();
+	                        	break;
+	                        case NotificationService.GUN_TWELVE_HOUR:
+	                        	frequencyPref.edit().putInt("frequency", NotificationService.GUN_TWELVE_HOUR).apply();
+	                        	Toast.makeText(getActivity(), "Got it!  We'll check every morning and evening.", Toast.LENGTH_SHORT).show();
+	                        	break;
+	                        case NotificationService.GUN_ONE_DAY:
+	                        	frequencyPref.edit().putInt("frequency", NotificationService.GUN_ONE_DAY).apply();
+	                        	Toast.makeText(getActivity(), "Gotcha!  We'll check every day at noon.", Toast.LENGTH_SHORT).show();
+	                        	break;
+	                        case NotificationService.GUN_NEVER:
+	                        	frequencyPref.edit().putInt("frequency", NotificationService.GUN_NEVER).apply();
+	                        	Toast.makeText(getActivity(), "Affirmative!  We won't automatically check for grade updates.", Toast.LENGTH_SHORT).show();
+	                        	break;
+	                        default:
+	                        	break;
+	                    }
+	                    dialog.dismiss();
+	                    setNotificationAlarm();
+                    }
+                });
+                levelDialog = builder.create();
+                levelDialog.show();
 				break;
 	        case 9: // Log out
 	    		new DatabaseHandler(getActivity()).deleteAll();
@@ -200,5 +249,100 @@ public class MenuListFragment extends ListFragment {
 	        toast.cancel();
 	    }
 	    super.onPause();
+	}
+	
+	private boolean setNotificationAlarm() {
+		SharedPreferences frequencyPref = getActivity().getSharedPreferences("frequency", Context.MODE_PRIVATE);
+		int currentFrequency = frequencyPref.getInt("frequency", NotificationService.GUN_TWELVE_HOUR);
+		
+		if(currentFrequency == NotificationService.GUN_NEVER) {
+			return true;
+		}
+		
+		try {
+			Intent broadcastIntent = new Intent(getActivity(), NotificationReceiver.class);
+			PendingIntent pendingIntent = PendingIntent.getBroadcast(getActivity(), GradeViewActivity.NOTIF_BROADCAST_ID,
+					broadcastIntent, PendingIntent.FLAG_CANCEL_CURRENT);
+			AlarmManager alarms = (AlarmManager) getActivity().getSystemService(Context.ALARM_SERVICE);
+
+			Calendar calendar = Calendar.getInstance();
+			calendar.set(Calendar.SECOND, 0);
+			calendar.set(Calendar.MILLISECOND, 0);
+			
+			int unroundedMinutes = calendar.get(Calendar.MINUTE);
+			int hour = calendar.get(Calendar.HOUR_OF_DAY);
+			int mod;
+			
+			long alarmInterval;
+			long startTime = System.currentTimeMillis() + 3000;
+			
+			switch(currentFrequency) {
+				case NotificationService.GUN_FIFTEEN_MIN:
+					alarmInterval = AlarmManager.INTERVAL_FIFTEEN_MINUTES;
+					mod = unroundedMinutes % 15;
+					calendar.add(Calendar.MINUTE, 15 - mod);
+					break;
+				case NotificationService.GUN_THIRTY_MIN:
+					alarmInterval = AlarmManager.INTERVAL_HALF_HOUR;
+					mod = unroundedMinutes % 30;
+					calendar.add(Calendar.MINUTE, 30 - mod);
+					break;
+				case NotificationService.GUN_ONE_HOUR:
+					alarmInterval = AlarmManager.INTERVAL_HOUR;
+					mod = unroundedMinutes % 60;
+					calendar.add(Calendar.MINUTE, 60 - mod);
+					break;
+				case NotificationService.GUN_TWELVE_HOUR:
+					alarmInterval = AlarmManager.INTERVAL_HALF_DAY;
+					calendar.set(Calendar.MINUTE, 0);
+					if(hour < 8) {	// 8:00 am
+						calendar.set(Calendar.HOUR_OF_DAY, 8);
+					}
+					else if(hour < 20) {  // 8:00pm
+						calendar.set(Calendar.HOUR_OF_DAY, 20);
+					}
+					else {
+						calendar.set(Calendar.HOUR_OF_DAY, 8);
+						calendar.add(Calendar.DAY_OF_MONTH, 1);
+					}				
+					break;
+				case NotificationService.GUN_ONE_DAY:
+					alarmInterval = AlarmManager.INTERVAL_DAY;
+					calendar.set(Calendar.MINUTE, 0);
+					if(hour >= 12) {
+						calendar.add(Calendar.DAY_OF_MONTH, 1);
+					}
+					calendar.set(Calendar.HOUR_OF_DAY, 12);
+					
+					break;
+				default:
+					alarmInterval = AlarmManager.INTERVAL_HALF_DAY;
+					calendar.set(Calendar.MINUTE, 0);
+					if(hour < 8) {	// 8:00 am
+						calendar.set(Calendar.HOUR_OF_DAY, 8);
+					}
+					else if(hour < 20) {  // 8:00pm
+						calendar.set(Calendar.HOUR_OF_DAY, 20);
+					}
+					else {
+						calendar.set(Calendar.HOUR_OF_DAY, 8);
+						calendar.add(Calendar.DAY_OF_MONTH, 1);
+					}
+					break;
+			}
+			
+			// TODO remove me (debug)
+			Toast.makeText(getActivity(), new SimpleDateFormat("MM-dd-yyyy HH:mm:ss").format(calendar.getTime()), Toast.LENGTH_LONG).show();
+			
+			alarms.setRepeating(AlarmManager.RTC_WAKEUP, startTime,
+					alarmInterval, pendingIntent); 
+		} 
+		catch(Exception e) {
+			System.out.println("Failed to set alarm");
+			e.printStackTrace();
+			return false;
+		}
+		
+		return true;
 	}
 }

@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.SocketTimeoutException;
 import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
@@ -26,9 +27,12 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import android.annotation.SuppressLint;
+import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -43,6 +47,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.AdapterView;
+import android.widget.Toast;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ListView;
 import org.bcp.mobile.R;
@@ -65,6 +70,8 @@ public class GradeViewActivity extends SlidingFragmentActivity {
 	public static final int SEMESTER_ONE_POSITION = 0;
 	public static final int SEMESTER_TWO_POSITION = 1;
 	public static final String COURSE_ID = "bcp.web.bcpgradebook.courseid";
+	
+	public static final int NOTIF_BROADCAST_ID = 254254;
 	
 	private String gradesUrl;
 	private ArrayList<Grade> semesterList1 = new ArrayList<Grade>();
@@ -206,6 +213,100 @@ public class GradeViewActivity extends SlidingFragmentActivity {
 			toggle();
 		}
 		NotificationService.resetNotificationInfo();
+	}
+	
+	private boolean setNotificationAlarm() {
+		SharedPreferences frequencyPref = getSharedPreferences("frequency", Context.MODE_PRIVATE);
+		int currentFrequency = frequencyPref.getInt("frequency", NotificationService.GUN_TWELVE_HOUR);
+		
+		if(currentFrequency == NotificationService.GUN_NEVER) {
+			return true;
+		}
+		
+		try {
+			Intent broadcastIntent = new Intent(this, NotificationReceiver.class);
+			PendingIntent pendingIntent = PendingIntent.getBroadcast(this, NOTIF_BROADCAST_ID,
+					broadcastIntent, PendingIntent.FLAG_CANCEL_CURRENT);
+			AlarmManager alarms = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+
+			Calendar calendar = Calendar.getInstance();
+			calendar.set(Calendar.SECOND, 0);
+			calendar.set(Calendar.MILLISECOND, 0);
+			
+			int unroundedMinutes = calendar.get(Calendar.MINUTE);
+			int hour = calendar.get(Calendar.HOUR_OF_DAY);
+			int mod;
+			
+			long alarmInterval;
+			long startTime = System.currentTimeMillis() + 3000;
+			
+			switch(currentFrequency) {
+				case NotificationService.GUN_FIFTEEN_MIN:
+					alarmInterval = AlarmManager.INTERVAL_FIFTEEN_MINUTES;
+					mod = unroundedMinutes % 15;
+					calendar.add(Calendar.MINUTE, 15 - mod);
+					break;
+				case NotificationService.GUN_THIRTY_MIN:
+					alarmInterval = AlarmManager.INTERVAL_HALF_HOUR;
+					mod = unroundedMinutes % 30;
+					calendar.add(Calendar.MINUTE, 30 - mod);
+					break;
+				case NotificationService.GUN_ONE_HOUR:
+					alarmInterval = AlarmManager.INTERVAL_HOUR;
+					mod = unroundedMinutes % 60;
+					calendar.add(Calendar.MINUTE, 60 - mod);
+					break;
+				case NotificationService.GUN_TWELVE_HOUR:
+					alarmInterval = AlarmManager.INTERVAL_HALF_DAY;
+					calendar.set(Calendar.MINUTE, 0);
+					if(hour < 8) {	// 8:00 am
+						calendar.set(Calendar.HOUR_OF_DAY, 8);
+					}
+					else if(hour < 20) {  // 8:00pm
+						calendar.set(Calendar.HOUR_OF_DAY, 20);
+					}
+					else {
+						calendar.set(Calendar.HOUR_OF_DAY, 8);
+						calendar.add(Calendar.DAY_OF_MONTH, 1);
+					}				
+					break;
+				case NotificationService.GUN_ONE_DAY:
+					alarmInterval = AlarmManager.INTERVAL_DAY;
+					calendar.set(Calendar.MINUTE, 0);
+					if(hour >= 12) {
+						calendar.add(Calendar.DAY_OF_MONTH, 1);
+					}
+					calendar.set(Calendar.HOUR_OF_DAY, 12);
+					
+					break;
+				default:
+					alarmInterval = AlarmManager.INTERVAL_HALF_DAY;
+					calendar.set(Calendar.MINUTE, 0);
+					if(hour < 8) {	// 8:00 am
+						calendar.set(Calendar.HOUR_OF_DAY, 8);
+					}
+					else if(hour < 20) {  // 8:00pm
+						calendar.set(Calendar.HOUR_OF_DAY, 20);
+					}
+					else {
+						calendar.set(Calendar.HOUR_OF_DAY, 8);
+						calendar.add(Calendar.DAY_OF_MONTH, 1);
+					}
+					break;
+			}
+			
+			Toast.makeText(getApplicationContext(), new SimpleDateFormat("MM-dd-yyyy HH:mm:ss").format(calendar.getTime()), Toast.LENGTH_LONG).show();
+			
+			alarms.setRepeating(AlarmManager.RTC_WAKEUP, startTime,
+					alarmInterval, pendingIntent); 
+		} 
+		catch(Exception e) {
+			System.out.println("Failed to set alarm");
+			e.printStackTrace();
+			return false;
+		}
+		
+		return true;
 	}
 
 	public boolean isOnline() {
@@ -435,7 +536,7 @@ public class GradeViewActivity extends SlidingFragmentActivity {
 		for(int iter = 0; iter < 2; iter++)
 		{
 			HashMap<String, String> percentMap = db.getPercentTitleMap(iter+1);
-			System.out.println("MAP: " + percentMap.toString()); // TODO: check if key exists
+			System.out.println("MAP: " + percentMap.toString());
 	
 			JSONArray sem = iter == 0 ? result.getJSONArray("semester1") : result.getJSONArray("semester2");
 			ArrayList<Grade> activeList = iter == 0 ? semesterList1 : semesterList2;
