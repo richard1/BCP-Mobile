@@ -41,6 +41,9 @@ public class NotificationService extends Service {
     }
 	
 	private boolean sendNotification(String newCourse) {
+		if(newCourse == null || newCourse.length() == 0) {
+			return false;
+		}
 		String[] courses = {newCourse};
 		return sendNotification(courses);
 	}

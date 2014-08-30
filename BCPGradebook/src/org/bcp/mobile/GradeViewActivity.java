@@ -140,12 +140,6 @@ public class GradeViewActivity extends SlidingFragmentActivity {
 		semesterList2.addAll((ArrayList<Grade>) db.getAllWithSemester(2));
 		assignmentList.addAll((ArrayList<Item>) adb.getAll());
 
-		progress = new ProgressDialog(this);
-		progress.setTitle("Welcome");
-		progress.setMessage("Fetching your grades...");
-		progress.setCanceledOnTouchOutside(false);
-		progress.show();
-
 		Calendar c = Calendar.getInstance(); 
 		int month = c.get(Calendar.MONTH) + 1; // January -> 0, December -> 11 ... this corrects it		
 		if(month < 8) { // if in between January 1 and July 31, set default to Semester 2
@@ -160,6 +154,12 @@ public class GradeViewActivity extends SlidingFragmentActivity {
 			encryptedPassword;
 
 		gradesUrl = "http://brycepauken.com/api/3539/grades.php?username=" + username + "&password=" + encryptedPassword;
+		
+		progress = new ProgressDialog(this);
+		progress.setTitle("Welcome" + (username != null && username.length() > 0 ? ", " + getNameFromUsername(username)[0] : ""));
+		progress.setMessage("Fetching your grades...");
+		progress.setCanceledOnTouchOutside(false);
+		progress.show();
 
 		if(!isOnline()) {
 			progress.dismiss();
@@ -211,6 +211,19 @@ public class GradeViewActivity extends SlidingFragmentActivity {
 	public boolean isOnline() {
 		ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
 		return cm.getActiveNetworkInfo() != null && cm.getActiveNetworkInfo().isConnectedOrConnecting();
+	}
+	
+	@SuppressLint("DefaultLocale")
+	public String[] getNameFromUsername(String username) {
+		String[] names = new String[3];
+		if(username.contains("@")) { // if people log in with email address
+			username = username.substring(0, username.indexOf("@"));
+		}
+		names[0] = username.substring(0, 1).toUpperCase() + username.substring(1, username.indexOf("."));
+		names[1] = username.substring(username.indexOf(".") + 1, username.indexOf(".") + 2).toUpperCase() 
+				+ username.substring(username.indexOf(".") + 2, username.length() - 2);
+		names[2] = username.substring(username.length() - 2, username.length());
+		return names;
 	}
 
 	public int getIdFromGrade(String grade) {
