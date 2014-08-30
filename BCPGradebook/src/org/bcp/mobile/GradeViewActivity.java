@@ -91,6 +91,8 @@ public class GradeViewActivity extends SlidingFragmentActivity {
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		
+		NotificationService.resetNotificationInfo();
+				
 		Bundle humbleBundle = new Bundle();
 		humbleBundle.putBoolean("showSemesterOne", true);
 		semesterOneFragment = new GradeFragment();
@@ -203,6 +205,7 @@ public class GradeViewActivity extends SlidingFragmentActivity {
 		if(sm.isMenuShowing()) {
 			toggle();
 		}
+		NotificationService.resetNotificationInfo();
 	}
 
 	public boolean isOnline() {

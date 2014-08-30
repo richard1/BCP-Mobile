@@ -30,6 +30,8 @@ import android.net.ConnectivityManager;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.app.ActivityManager;
+import android.app.ActivityManager.RunningServiceInfo;
 import android.content.Context;
 import android.content.Intent;
 import android.view.Gravity;
@@ -61,6 +63,9 @@ public class CalendarActivity extends SlidingFragmentActivity {
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		
+		NotificationService.resetNotificationInfo();
+		
 		setContentView(R.layout.activity_calendar);
 		setTitle("Calendar");
 		setBehindContentView(R.layout.menu_frame);
@@ -254,6 +259,7 @@ public class CalendarActivity extends SlidingFragmentActivity {
 		if(sm.isMenuShowing()) {
 			toggle();
 		}
+		NotificationService.resetNotificationInfo();
 	}
 	
 	@Override
@@ -269,6 +275,13 @@ public class CalendarActivity extends SlidingFragmentActivity {
 		// Handle item selection
 		if(item.getTitle().equals("Scroll")) {
 			scrollToPosition(closestItem);
+			// TODO remove
+			if(isServiceRunning(NotificationService.class)) {
+				stopService(new Intent(this, NotificationService.class));
+			}
+			else {
+				startService(new Intent(this, NotificationService.class));
+			}
 			return true;
 		}
 		switch (item.getItemId()) {
@@ -278,6 +291,16 @@ public class CalendarActivity extends SlidingFragmentActivity {
 		    default:
 		        return super.onOptionsItemSelected(item);
 	    }
+	}
+	
+	private boolean isServiceRunning(Class<?> serviceClass) {
+	    ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+	    for (RunningServiceInfo  service : manager.getRunningServices(Integer.MAX_VALUE)) {
+	        if (serviceClass.getName().equals(service.service.getClassName())) {
+	            return true;
+	        }
+	    }
+	    return false;
 	}
 	
 	public String getStringMonth(int theMonth) {

@@ -65,6 +65,9 @@ public class NewsRssActivity extends SlidingFragmentActivity {
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		
+		NotificationService.resetNotificationInfo();
+		
 		setContentView(R.layout.activity_news_rss);
 		setTitle("News");
 		setBehindContentView(R.layout.menu_frame);
@@ -119,6 +122,7 @@ public class NewsRssActivity extends SlidingFragmentActivity {
 		if(sm.isMenuShowing()) {
 			toggle();
 		}
+		NotificationService.resetNotificationInfo();
 	}
 
 	@Override

@@ -53,6 +53,9 @@ public class CourseDetailActivity extends ListActivity {
 
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		
+		NotificationService.resetNotificationInfo();
+		
 		setContentView(R.layout.activity_course_detail);
 		
 		getActionBar().setHomeButtonEnabled(true);

@@ -55,6 +55,7 @@
             android:configChanges="keyboardHidden|orientation|screenSize"
             android:label="@string/title_activity_calendar" >
         </activity>
+        <service android:enabled="true" android:name=".NotificationService" />
     </application>
 
 </manifest>
