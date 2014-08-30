@@ -72,7 +72,7 @@ public class NewsRssActivity extends SlidingFragmentActivity {
 		setTitle("News");
 		setBehindContentView(R.layout.menu_frame);
 		
-		displayCrouton("RETRIEVING NEWS...", 3000, Style.INFO);
+		//displayCrouton("RETRIEVING NEWS...", 3000, Style.INFO);
 		
 		if (savedInstanceState == null) {
 			mFrag = new MenuListFragment();

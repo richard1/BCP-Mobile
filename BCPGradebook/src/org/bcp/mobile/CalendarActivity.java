@@ -82,7 +82,7 @@ public class CalendarActivity extends SlidingFragmentActivity {
 			calUrl2 += (month + 1) + "/1/" + year + CALENDAR_MODULE;
 		}
 		
-		displayCrouton("GETTING EVENTS IN " + getStringMonth(month) + "...", 3000, Style.INFO);
+		//displayCrouton("GETTING EVENTS IN " + getStringMonth(month) + "...", 3000, Style.INFO);
 		
 		listener = new OnItemClickListener() {
 			@Override
