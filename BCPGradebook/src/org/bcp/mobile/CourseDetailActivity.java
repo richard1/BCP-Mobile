@@ -33,7 +33,8 @@ public class CourseDetailActivity extends ListActivity {
 			String detail = "";
 			if(asg.type.equals("Cat")) {
 				detail = "Score: " + decimalFormat.format(asg.score) + " / " + decimalFormat.format(asg.total) + "\nPercentage: " +
-						asg.percent + "\nGrade: " + asg.letter + "\n\nWeight: " + asg.weight + "%";
+						(asg.percent != null && asg.percent.length() > 1 ? asg.percent : "100.00%") + 
+						"\nGrade: " + asg.letter + "\n\nCourse Weight: " + decimalFormat.format(Double.parseDouble(asg.weight)) + "%";
 			}
 			else {
 				detail = "Score: " + decimalFormat.format(asg.score) + " / " + decimalFormat.format(asg.total) + "\nPercentage: " +
