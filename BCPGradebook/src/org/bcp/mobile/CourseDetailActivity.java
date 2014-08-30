@@ -42,7 +42,7 @@ public class CourseDetailActivity extends ListActivity {
 	        AlertDialog.Builder builder = new AlertDialog.Builder(CourseDetailActivity.this);
 	        builder.setTitle(title);
 	        builder.setMessage(detail);
-	        builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+	        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
 	            public void onClick(DialogInterface dialog, int id) {
 	            }
 	        });

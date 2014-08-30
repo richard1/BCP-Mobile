@@ -114,22 +114,9 @@ public class MenuListFragment extends ListFragment {
 				startActivity(Intent.createChooser(emailIntent, "Send email..."));
 				break;
 			case 7: // Rate
-				about = "If this app has helped you out, feel free to leave a rating on the Google Play Store page. Thanks!";
-		        builder = new AlertDialog.Builder(getActivity());
-		        builder.setTitle("Rate");
-		        builder.setMessage(about);
-		        builder.setPositiveButton("Rate", new DialogInterface.OnClickListener() {
-		            public void onClick(DialogInterface dialog, int id) {
-		            	Intent browserIntent = new Intent(Intent.ACTION_VIEW, 
-		            			Uri.parse("https://play.google.com/store/apps/details?id=org.bcp.mobile"));
-		            	startActivity(browserIntent);
-		            }
-		        });
-		        builder.setNegativeButton("Maybe Later", new DialogInterface.OnClickListener() {
-		            public void onClick(DialogInterface dialog, int id) {
-		            }
-		        });
-		        builder.show();
+				Intent browserIntent = new Intent(Intent.ACTION_VIEW, 
+            			Uri.parse("https://play.google.com/store/apps/details?id=org.bcp.mobile"));
+            	startActivity(browserIntent);
 				break;
 	        case 8:
 	    		new DatabaseHandler(getActivity()).deleteAll();

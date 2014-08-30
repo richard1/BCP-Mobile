@@ -197,6 +197,7 @@ public class CalendarActivity extends SlidingFragmentActivity {
 		protected void onPostExecute(String result) {
 			if(!isOnline()) {
 				displayCrouton("NO INTERNET CONNECTION", 3000, Style.ALERT);
+				calendarLoading.setVisibility(View.GONE);
 			} else {
 				refreshList();
 			}

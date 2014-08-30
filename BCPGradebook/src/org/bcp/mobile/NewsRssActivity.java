@@ -153,6 +153,7 @@ public class NewsRssActivity extends SlidingFragmentActivity {
 		protected void onPostExecute(String result) {
 			if(!isOnline()) {
 				displayCrouton("NO INTERNET CONNECTION", 3000, Style.ALERT);
+				newsLoading.setVisibility(View.GONE);
 			} else {
 				refreshList();
 			}
