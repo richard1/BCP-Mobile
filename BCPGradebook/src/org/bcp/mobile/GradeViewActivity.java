@@ -367,6 +367,10 @@ public class GradeViewActivity extends SlidingFragmentActivity {
 		public PullToRefreshListView listView;
 		OnItemClickListener listener;	
 		GradeAdapter adapter;
+		
+		public GradeFragment() {
+			// intentionally left empty
+		}
 
 		@Override
 		public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -426,8 +430,10 @@ public class GradeViewActivity extends SlidingFragmentActivity {
 		public Fragment getItem(int position) {
 
 			if (PageInfo.Crouton.ordinal() == position) {
+				semesterOneFragment.setRetainInstance(true);
 				return semesterOneFragment;
 			} else if (PageInfo.About.ordinal() == position) {
+				semesterTwoFragment.setRetainInstance(true);
 				return semesterTwoFragment;
 			}
 			return null;

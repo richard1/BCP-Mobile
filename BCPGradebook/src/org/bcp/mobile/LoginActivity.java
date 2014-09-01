@@ -257,13 +257,13 @@ public class LoginActivity extends Activity {
 				Editor editorUser = getSharedPreferences("username", MODE_PRIVATE).edit();
 				editorUser.putString("username", mEmail);
 				editorUser.commit();
-				
+								
 				InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
 				imm.hideSoftInputFromWindow(mEmailView.getWindowToken(), 0);
 				imm.hideSoftInputFromWindow(mPasswordView.getWindowToken(), 0);
 				Intent intent = new Intent(getBaseContext(), GradeViewActivity.class);
 				intent.putExtra("username", mEmail);
-				intent.putExtra("encryptedPasswobrd", mEncryptedPassword);
+				intent.putExtra("encryptedPassword", mEncryptedPassword);
 				startActivity(intent);
 				overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
 				finish();

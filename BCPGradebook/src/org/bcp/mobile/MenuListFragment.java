@@ -64,6 +64,8 @@ public class MenuListFragment extends ListFragment {
         Intent intent;
         String about;
         AlertDialog.Builder builder;
+        SharedPreferences frequencyPref = getActivity().getSharedPreferences("frequency", Context.MODE_PRIVATE);
+        
 		switch (position) {
 			case 0:
 				easterEgg++;
@@ -126,8 +128,6 @@ public class MenuListFragment extends ListFragment {
 				break;
 			case 8: // Settings
 				AlertDialog levelDialog;
-				
-				SharedPreferences frequencyPref = getActivity().getSharedPreferences("frequency", Context.MODE_PRIVATE);
 				int currentFrequency = frequencyPref.getInt("frequency", NotificationService.GUN_TWELVE_HOUR);
 				
                 // Creating and Building the Dialog 
@@ -173,6 +173,10 @@ public class MenuListFragment extends ListFragment {
 				break;
 	        case 9: // Log out
 	    		new DatabaseHandler(getActivity()).deleteAll();
+	    		
+	    		frequencyPref.edit().putInt("frequency", NotificationService.GUN_NEVER).apply();
+	    		setNotificationAlarm();
+	    		
 	    		getActivity().getSharedPreferences("username", Context.MODE_PRIVATE).edit().clear().commit();
 	    		getActivity().getSharedPreferences("password", Context.MODE_PRIVATE).edit().clear().commit();
 		        intent = new Intent(getActivity(), LoginActivity.class);
@@ -255,15 +259,18 @@ public class MenuListFragment extends ListFragment {
 		SharedPreferences frequencyPref = getActivity().getSharedPreferences("frequency", Context.MODE_PRIVATE);
 		int currentFrequency = frequencyPref.getInt("frequency", NotificationService.GUN_TWELVE_HOUR);
 		
-		if(currentFrequency == NotificationService.GUN_NEVER) {
-			return true;
-		}
+		NotificationService.resetNotificationInfo();
 		
 		try {
 			Intent broadcastIntent = new Intent(getActivity(), NotificationReceiver.class);
 			PendingIntent pendingIntent = PendingIntent.getBroadcast(getActivity(), GradeViewActivity.NOTIF_BROADCAST_ID,
 					broadcastIntent, PendingIntent.FLAG_CANCEL_CURRENT);
 			AlarmManager alarms = (AlarmManager) getActivity().getSystemService(Context.ALARM_SERVICE);
+			
+			if(currentFrequency == NotificationService.GUN_NEVER) {
+				alarms.cancel(pendingIntent);
+				return true;
+			}
 
 			Calendar calendar = Calendar.getInstance();
 			calendar.set(Calendar.SECOND, 0);
@@ -334,8 +341,8 @@ public class MenuListFragment extends ListFragment {
 			// TODO remove me (debug)
 			Toast.makeText(getActivity(), new SimpleDateFormat("MM-dd-yyyy HH:mm:ss").format(calendar.getTime()), Toast.LENGTH_LONG).show();
 			
-			alarms.setRepeating(AlarmManager.RTC_WAKEUP, startTime,
-					alarmInterval, pendingIntent); 
+			alarms.setRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis()/*calendar.getTimeInMillis()*/,
+					alarmInterval / 1000, pendingIntent); 
 		} 
 		catch(Exception e) {
 			System.out.println("Failed to set alarm");
