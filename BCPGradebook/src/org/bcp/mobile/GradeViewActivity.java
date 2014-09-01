@@ -178,6 +178,7 @@ public class GradeViewActivity extends SlidingFragmentActivity {
         	public void onClick(DialogInterface dialog, int id) {
         		SharedPreferences frequencyPref = getSharedPreferences("frequency", Context.MODE_PRIVATE);
         		frequencyPref.edit().putInt("frequency", NotificationService.GUN_TWELVE_HOUR).apply();
+        		setNotificationAlarm();
         		builderConfirm.show();
         	}
         });
