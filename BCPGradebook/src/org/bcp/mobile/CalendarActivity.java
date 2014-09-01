@@ -30,8 +30,6 @@ import android.net.ConnectivityManager;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.app.ActivityManager;
-import android.app.ActivityManager.RunningServiceInfo;
 import android.content.Context;
 import android.content.Intent;
 import android.view.Gravity;
@@ -264,7 +262,7 @@ public class CalendarActivity extends SlidingFragmentActivity {
 	
 	@Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        menu.add("Scroll")
+        menu.add("Today")
             .setIcon(R.drawable.calendar_today)
             .setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
         return true;
@@ -273,15 +271,8 @@ public class CalendarActivity extends SlidingFragmentActivity {
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		// Handle item selection
-		if(item.getTitle().equals("Scroll")) {
+		if(item.getTitle().equals("Today")) {
 			scrollToPosition(closestItem);
-			// TODO remove
-			if(isServiceRunning(NotificationService.class)) {
-				stopService(new Intent(this, NotificationService.class));
-			}
-			else {
-				startService(new Intent(this, NotificationService.class));
-			}
 			return true;
 		}
 		switch (item.getItemId()) {
@@ -291,16 +282,6 @@ public class CalendarActivity extends SlidingFragmentActivity {
 		    default:
 		        return super.onOptionsItemSelected(item);
 	    }
-	}
-	
-	private boolean isServiceRunning(Class<?> serviceClass) {
-	    ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
-	    for (RunningServiceInfo  service : manager.getRunningServices(Integer.MAX_VALUE)) {
-	        if (serviceClass.getName().equals(service.service.getClassName())) {
-	            return true;
-	        }
-	    }
-	    return false;
 	}
 	
 	public String getStringMonth(int theMonth) {
@@ -321,12 +302,6 @@ public class CalendarActivity extends SlidingFragmentActivity {
 		}
 		return "";
 	}
-	
-	/*public String formatEventText(String theText) {
-		String newText = theText;
-		newText.replaceAll("Location:", "\nLocation:").replaceAll("Time:", "\nTime:").replaceAll("Visit this Link", "");
-		return newText;
-	}*/
 	
 	public String monthToString(int month) {
 		switch(month) {

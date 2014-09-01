@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.SocketTimeoutException;
 import java.text.DecimalFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
@@ -28,9 +27,11 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import android.annotation.SuppressLint;
 import android.app.AlarmManager;
+import android.app.AlertDialog;
 import android.app.PendingIntent;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
@@ -47,7 +48,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.AdapterView;
-import android.widget.Toast;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ListView;
 import org.bcp.mobile.R;
@@ -162,17 +162,54 @@ public class GradeViewActivity extends SlidingFragmentActivity {
 
 		gradesUrl = "http://brycepauken.com/api/3539/grades.php?username=" + username + "&password=" + encryptedPassword;
 		
+		final AlertDialog.Builder builderConfirm = new AlertDialog.Builder(this);
+		builderConfirm.setTitle("Great!");
+		builderConfirm.setMessage("To change your notification settings, tap on Settings in the sidebar.");
+		builderConfirm.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+        	public void onClick(DialogInterface dialog, int id) {
+        	}
+        });
+		
+		final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+		builder.setTitle("Welcome" + (username != null && username.length() > 0 ? ", " + getNameFromUsername(username)[0] : ""));
+        builder.setMessage("Want notifications?\n\nWe'll automatically check for grade updates throughout the day " +
+        		"and let you know of any changes.");
+        builder.setPositiveButton("Sign me up!", new DialogInterface.OnClickListener() {
+        	public void onClick(DialogInterface dialog, int id) {
+        		builderConfirm.show();
+        	}
+        });
+        builder.setNegativeButton("Not now", new DialogInterface.OnClickListener() {
+        	public void onClick(DialogInterface dialog, int id) {
+        		SharedPreferences frequencyPref = getSharedPreferences("frequency", Context.MODE_PRIVATE);
+        		frequencyPref.edit().putInt("frequency", NotificationService.GUN_NEVER).apply();
+        		setNotificationAlarm();
+	       	}
+	   	});
+        
 		progress = new ProgressDialog(this);
 		progress.setTitle("Welcome" + (username != null && username.length() > 0 ? ", " + getNameFromUsername(username)[0] : ""));
 		progress.setMessage("Fetching your grades...");
 		progress.setCanceledOnTouchOutside(false);
 		progress.show();
+		
+		SharedPreferences hasLoggedInPref = getSharedPreferences("hasLoggedIn", MODE_PRIVATE);
 
+		if(hasLoggedInPref.getInt("hasLoggedIn", 0) == 0) {
+			builder.show();
+			getSharedPreferences("hasLoggedIn", MODE_PRIVATE).edit().putInt("hasLoggedIn", 1).apply();
+		}
+		else {
+			progress.show();
+		}
+		
 		if(!isOnline()) {
 			progress.dismiss();
 		} else {
 			System.out.println("CONNECTED!");
 		}
+		
+		setNotificationAlarm();
 
 		new DownloadGradesTask().execute(gradesUrl);
 	}
@@ -219,15 +256,18 @@ public class GradeViewActivity extends SlidingFragmentActivity {
 		SharedPreferences frequencyPref = getSharedPreferences("frequency", Context.MODE_PRIVATE);
 		int currentFrequency = frequencyPref.getInt("frequency", NotificationService.GUN_TWELVE_HOUR);
 		
-		if(currentFrequency == NotificationService.GUN_NEVER) {
-			return true;
-		}
+		NotificationService.resetNotificationInfo();
 		
 		try {
 			Intent broadcastIntent = new Intent(this, NotificationReceiver.class);
-			PendingIntent pendingIntent = PendingIntent.getBroadcast(this, NOTIF_BROADCAST_ID,
+			PendingIntent pendingIntent = PendingIntent.getBroadcast(this, GradeViewActivity.NOTIF_BROADCAST_ID,
 					broadcastIntent, PendingIntent.FLAG_CANCEL_CURRENT);
 			AlarmManager alarms = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+			
+			if(currentFrequency == NotificationService.GUN_NEVER) {
+				alarms.cancel(pendingIntent);
+				return true;
+			}
 
 			Calendar calendar = Calendar.getInstance();
 			calendar.set(Calendar.SECOND, 0);
@@ -238,7 +278,6 @@ public class GradeViewActivity extends SlidingFragmentActivity {
 			int mod;
 			
 			long alarmInterval;
-			long startTime = System.currentTimeMillis() + 3000;
 			
 			switch(currentFrequency) {
 				case NotificationService.GUN_FIFTEEN_MIN:
@@ -294,10 +333,10 @@ public class GradeViewActivity extends SlidingFragmentActivity {
 					}
 					break;
 			}
-			
-			Toast.makeText(getApplicationContext(), new SimpleDateFormat("MM-dd-yyyy HH:mm:ss").format(calendar.getTime()), Toast.LENGTH_LONG).show();
-			
-			alarms.setRepeating(AlarmManager.RTC_WAKEUP, startTime,
+						
+			//Toast.makeText(this, new SimpleDateFormat("MM-dd-yyyy HH:mm:ss").format(calendar.getTime()), Toast.LENGTH_LONG).show();
+
+			alarms.setRepeating(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(),
 					alarmInterval, pendingIntent); 
 		} 
 		catch(Exception e) {

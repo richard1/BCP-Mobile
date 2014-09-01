@@ -34,7 +34,6 @@ import android.net.ConnectivityManager;
 import android.os.AsyncTask;
 import android.os.IBinder;
 import android.util.Log;
-import android.widget.Toast;
 
 public class NotificationService extends Service {
 	
@@ -99,17 +98,33 @@ public class NotificationService extends Service {
 	@SuppressWarnings("deprecation")
 	@SuppressLint("NewApi")
 	private boolean sendNotification(CourseUpdate[] newCourses) {
-        
+
 		if(newCourses == null || newCourses.length == 0) {
 			return false;
 		}
-		
+
+		// if we should ACTUALLY send a notification, when there's a
+		// new course and/or percentage
+		// (sorry for similarly named variables)
+		boolean shouldActuallySendNotification = false;
 		for(CourseUpdate newCourse : newCourses) {
 			if(!coursesUpdated.contains(newCourse)) {
+				shouldActuallySendNotification = true;
+			}
+		}
+
+		if(!shouldActuallySendNotification) {
+			return true;
+		}
+		else {
+			// clear all current and re-add
+			// fixes duplicates like "WHAP: +0.42%" --> "WHAP: +0.85%"
+			coursesUpdated.clear();
+			for(CourseUpdate newCourse : newCourses) {
 				coursesUpdated.add(newCourse);
 			}
 		}
-		
+
 		String coursesUpdatedNewline = "";
 		String coursesUpdatedComma = "";
 		int coursesCount = 0;
@@ -125,7 +140,7 @@ public class NotificationService extends Service {
 	        	coursesUpdatedComma += ", " + course.getName();
 	        }
 		}
-        
+
         Bitmap bcpLargeIcon = BitmapFactory.decodeResource(getResources(), R.drawable.bell_no_shield);
 
         Resources res = getResources();
@@ -174,12 +189,12 @@ public class NotificationService extends Service {
         	notification = nb.getNotification();
         }
     	notificationManager.notify(GRADES_NOTIF_ID, notification);
-    	
+
     	return true;
 	}
 	
 	public void onDestroy() {
-        Toast.makeText(this, "Service stopped", Toast.LENGTH_LONG).show();
+        //Toast.makeText(this, "Service stopped", Toast.LENGTH_LONG).show();
         Log.d("notif", "onDestroy");
     }
 	
@@ -287,7 +302,6 @@ public class NotificationService extends Service {
 							oldPercent = Double.parseDouble(percentMap.get(courseName).replaceAll("%", ""));
 							newPercent = Double.parseDouble(percent.replaceAll("%", ""));
 						}
-						newPercent = 69.69; // TODO remove
 						
 						System.out.println(newPercent + " - " + oldPercent + " = " + (newPercent - oldPercent));
 						String percentDiff = (newPercent < oldPercent ? "" : "+") 

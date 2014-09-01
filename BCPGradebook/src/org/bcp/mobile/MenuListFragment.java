@@ -1,6 +1,5 @@
 package org.bcp.mobile;
 
-import java.text.SimpleDateFormat;
 import java.util.Calendar;
 
 import org.bcp.mobile.lib.DatabaseHandler;
@@ -35,6 +34,7 @@ public class MenuListFragment extends ListFragment {
 	private SidebarMenuAdapter adapter;
 	private Toast toast;
 	private int easterEgg = 0;
+	private static AlertDialog.Builder builder;
 
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 		return inflater.inflate(R.layout.list, null);
@@ -63,7 +63,7 @@ public class MenuListFragment extends ListFragment {
         super.onListItemClick(l, v, position, id);
         Intent intent;
         String about;
-        AlertDialog.Builder builder;
+        
         SharedPreferences frequencyPref = getActivity().getSharedPreferences("frequency", Context.MODE_PRIVATE);
         
 		switch (position) {
@@ -139,7 +139,7 @@ public class MenuListFragment extends ListFragment {
 	                    switch(item) {
 	                        case NotificationService.GUN_FIFTEEN_MIN:
 	                        	frequencyPref.edit().putInt("frequency", NotificationService.GUN_FIFTEEN_MIN).apply();
-	                        	Toast.makeText(getActivity(), "Loud and clear!  We'll check every 15 minutes.", Toast.LENGTH_SHORT).show();
+	                        	Toast.makeText(getActivity(), "Yes sir!  We'll check every 15 minutes.", Toast.LENGTH_SHORT).show();
 	                        	break;
 	                        case NotificationService.GUN_THIRTY_MIN:
 	                        	frequencyPref.edit().putInt("frequency", NotificationService.GUN_THIRTY_MIN).apply();
@@ -176,6 +176,7 @@ public class MenuListFragment extends ListFragment {
 	    		
 	    		frequencyPref.edit().putInt("frequency", NotificationService.GUN_NEVER).apply();
 	    		setNotificationAlarm();
+	    		getActivity().getSharedPreferences("hasLoggedIn", Context.MODE_PRIVATE).edit().putInt("hasLoggedIn", 0).apply();
 	    		
 	    		getActivity().getSharedPreferences("username", Context.MODE_PRIVATE).edit().clear().commit();
 	    		getActivity().getSharedPreferences("password", Context.MODE_PRIVATE).edit().clear().commit();
@@ -281,7 +282,6 @@ public class MenuListFragment extends ListFragment {
 			int mod;
 			
 			long alarmInterval;
-			long startTime = System.currentTimeMillis() + 3000;
 			
 			switch(currentFrequency) {
 				case NotificationService.GUN_FIFTEEN_MIN:
@@ -337,12 +337,11 @@ public class MenuListFragment extends ListFragment {
 					}
 					break;
 			}
+						
+			//Toast.makeText(getActivity(), new SimpleDateFormat("MM-dd-yyyy HH:mm:ss").format(calendar.getTime()), Toast.LENGTH_LONG).show();
 			
-			// TODO remove me (debug)
-			Toast.makeText(getActivity(), new SimpleDateFormat("MM-dd-yyyy HH:mm:ss").format(calendar.getTime()), Toast.LENGTH_LONG).show();
-			
-			alarms.setRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis()/*calendar.getTimeInMillis()*/,
-					alarmInterval / 1000, pendingIntent); 
+			alarms.setRepeating(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(),
+					alarmInterval, pendingIntent); 
 		} 
 		catch(Exception e) {
 			System.out.println("Failed to set alarm");
