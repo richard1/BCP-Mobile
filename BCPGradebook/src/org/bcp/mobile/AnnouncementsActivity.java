@@ -61,11 +61,14 @@ public class AnnouncementsActivity extends SlidingFragmentActivity {
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		
+		NotificationService.resetNotificationInfo();
+		
 		setContentView(R.layout.activity_announcements);
 		setTitle("Announcements");
 		setBehindContentView(R.layout.menu_frame);
 		
-		displayCrouton("RETRIEVING ANNOUNCEMENTS", 3000, Style.INFO);
+		//displayCrouton("RETRIEVING ANNOUNCEMENTS", 3000, Style.INFO);
 		
 		if (savedInstanceState == null) {
 			mFrag = new MenuListFragment();
@@ -114,6 +117,7 @@ public class AnnouncementsActivity extends SlidingFragmentActivity {
 		if(sm.isMenuShowing()) {
 			toggle();
 		}
+		NotificationService.resetNotificationInfo();
 	}
 
 	@Override

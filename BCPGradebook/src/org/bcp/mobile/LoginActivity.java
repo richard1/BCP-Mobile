@@ -63,6 +63,9 @@ public class LoginActivity extends Activity {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		
+		NotificationService.resetNotificationInfo();
+		
 		setContentView(R.layout.activity_login);
 		setTitle("Sign in");
 		getActionBar().hide();
@@ -254,18 +257,18 @@ public class LoginActivity extends Activity {
 				Editor editorUser = getSharedPreferences("username", MODE_PRIVATE).edit();
 				editorUser.putString("username", mEmail);
 				editorUser.commit();
-				
+								
 				InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
 				imm.hideSoftInputFromWindow(mEmailView.getWindowToken(), 0);
 				imm.hideSoftInputFromWindow(mPasswordView.getWindowToken(), 0);
 				Intent intent = new Intent(getBaseContext(), GradeViewActivity.class);
 				intent.putExtra("username", mEmail);
-				intent.putExtra("encryptedPasswobrd", mEncryptedPassword);
+				intent.putExtra("encryptedPassword", mEncryptedPassword);
 				startActivity(intent);
 				overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
 				finish();
 			} else {
-				mPasswordView.setError("Incorrect password. If not, something may be down");
+				mPasswordView.setError("Incorrect username or password");
 				mPasswordView.requestFocus();
 			}
 		}

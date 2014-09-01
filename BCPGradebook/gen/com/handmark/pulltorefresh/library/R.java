@@ -67,11 +67,11 @@ public final class R {
 		public static final int PullToRefresh_ptrHeaderSubTextColor = 3;
 	}
 	public static final class drawable {
-		public static final int indicator_bg_top = 0x7f020098;
-		public static final int indicator_bg_bottom = 0x7f020097;
-		public static final int default_ptr_flip = 0x7f02007a;
-		public static final int indicator_arrow = 0x7f020096;
-		public static final int default_ptr_rotate = 0x7f02007b;
+		public static final int indicator_bg_top = 0x7f02009a;
+		public static final int indicator_bg_bottom = 0x7f020099;
+		public static final int default_ptr_flip = 0x7f02007c;
+		public static final int indicator_arrow = 0x7f020098;
+		public static final int default_ptr_rotate = 0x7f02007d;
 	}
 	public static final class attr {
 		public static final int ptrHeaderBackground = 0x7f010090;

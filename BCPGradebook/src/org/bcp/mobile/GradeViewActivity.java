@@ -26,9 +26,14 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import android.annotation.SuppressLint;
+import android.app.AlarmManager;
+import android.app.AlertDialog;
+import android.app.PendingIntent;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -66,6 +71,8 @@ public class GradeViewActivity extends SlidingFragmentActivity {
 	public static final int SEMESTER_TWO_POSITION = 1;
 	public static final String COURSE_ID = "bcp.web.bcpgradebook.courseid";
 	
+	public static final int NOTIF_BROADCAST_ID = 254254;
+	
 	private String gradesUrl;
 	private ArrayList<Grade> semesterList1 = new ArrayList<Grade>();
 	private ArrayList<Grade> semesterList2 = new ArrayList<Grade>();
@@ -91,6 +98,8 @@ public class GradeViewActivity extends SlidingFragmentActivity {
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		
+		NotificationService.resetNotificationInfo();
+				
 		Bundle humbleBundle = new Bundle();
 		humbleBundle.putBoolean("showSemesterOne", true);
 		semesterOneFragment = new GradeFragment();
@@ -138,12 +147,6 @@ public class GradeViewActivity extends SlidingFragmentActivity {
 		semesterList2.addAll((ArrayList<Grade>) db.getAllWithSemester(2));
 		assignmentList.addAll((ArrayList<Item>) adb.getAll());
 
-		progress = new ProgressDialog(this);
-		progress.setTitle("Welcome");
-		progress.setMessage("Fetching your grades...");
-		progress.setCanceledOnTouchOutside(false);
-		progress.show();
-
 		Calendar c = Calendar.getInstance(); 
 		int month = c.get(Calendar.MONTH) + 1; // January -> 0, December -> 11 ... this corrects it		
 		if(month < 8) { // if in between January 1 and July 31, set default to Semester 2
@@ -158,12 +161,55 @@ public class GradeViewActivity extends SlidingFragmentActivity {
 			encryptedPassword;
 
 		gradesUrl = "http://brycepauken.com/api/3539/grades.php?username=" + username + "&password=" + encryptedPassword;
+		
+		final AlertDialog.Builder builderConfirm = new AlertDialog.Builder(this);
+		builderConfirm.setTitle("Great!");
+		builderConfirm.setMessage("To change your notification settings, tap on Settings in the sidebar.");
+		builderConfirm.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+        	public void onClick(DialogInterface dialog, int id) {
+        	}
+        });
+		
+		final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+		builder.setTitle("Welcome" + (username != null && username.length() > 0 ? ", " + getNameFromUsername(username)[0] : ""));
+        builder.setMessage("Want notifications?\n\nWe'll automatically check for grade updates throughout the day " +
+        		"and let you know of any changes.");
+        builder.setPositiveButton("Sign me up!", new DialogInterface.OnClickListener() {
+        	public void onClick(DialogInterface dialog, int id) {
+        		builderConfirm.show();
+        	}
+        });
+        builder.setNegativeButton("Not now", new DialogInterface.OnClickListener() {
+        	public void onClick(DialogInterface dialog, int id) {
+        		SharedPreferences frequencyPref = getSharedPreferences("frequency", Context.MODE_PRIVATE);
+        		frequencyPref.edit().putInt("frequency", NotificationService.GUN_NEVER).apply();
+        		setNotificationAlarm();
+	       	}
+	   	});
+        
+		progress = new ProgressDialog(this);
+		progress.setTitle("Welcome" + (username != null && username.length() > 0 ? ", " + getNameFromUsername(username)[0] : ""));
+		progress.setMessage("Fetching your grades...");
+		progress.setCanceledOnTouchOutside(false);
+		progress.show();
+		
+		SharedPreferences hasLoggedInPref = getSharedPreferences("hasLoggedIn", MODE_PRIVATE);
 
+		if(hasLoggedInPref.getInt("hasLoggedIn", 0) == 0) {
+			builder.show();
+			getSharedPreferences("hasLoggedIn", MODE_PRIVATE).edit().putInt("hasLoggedIn", 1).apply();
+		}
+		else {
+			progress.show();
+		}
+		
 		if(!isOnline()) {
 			progress.dismiss();
 		} else {
 			System.out.println("CONNECTED!");
 		}
+		
+		setNotificationAlarm();
 
 		new DownloadGradesTask().execute(gradesUrl);
 	}
@@ -203,11 +249,121 @@ public class GradeViewActivity extends SlidingFragmentActivity {
 		if(sm.isMenuShowing()) {
 			toggle();
 		}
+		NotificationService.resetNotificationInfo();
+	}
+	
+	private boolean setNotificationAlarm() {
+		SharedPreferences frequencyPref = getSharedPreferences("frequency", Context.MODE_PRIVATE);
+		int currentFrequency = frequencyPref.getInt("frequency", NotificationService.GUN_TWELVE_HOUR);
+		
+		NotificationService.resetNotificationInfo();
+		
+		try {
+			Intent broadcastIntent = new Intent(this, NotificationReceiver.class);
+			PendingIntent pendingIntent = PendingIntent.getBroadcast(this, GradeViewActivity.NOTIF_BROADCAST_ID,
+					broadcastIntent, PendingIntent.FLAG_CANCEL_CURRENT);
+			AlarmManager alarms = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+			
+			if(currentFrequency == NotificationService.GUN_NEVER) {
+				alarms.cancel(pendingIntent);
+				return true;
+			}
+
+			Calendar calendar = Calendar.getInstance();
+			calendar.set(Calendar.SECOND, 0);
+			calendar.set(Calendar.MILLISECOND, 0);
+			
+			int unroundedMinutes = calendar.get(Calendar.MINUTE);
+			int hour = calendar.get(Calendar.HOUR_OF_DAY);
+			int mod;
+			
+			long alarmInterval;
+			
+			switch(currentFrequency) {
+				case NotificationService.GUN_FIFTEEN_MIN:
+					alarmInterval = AlarmManager.INTERVAL_FIFTEEN_MINUTES;
+					mod = unroundedMinutes % 15;
+					calendar.add(Calendar.MINUTE, 15 - mod);
+					break;
+				case NotificationService.GUN_THIRTY_MIN:
+					alarmInterval = AlarmManager.INTERVAL_HALF_HOUR;
+					mod = unroundedMinutes % 30;
+					calendar.add(Calendar.MINUTE, 30 - mod);
+					break;
+				case NotificationService.GUN_ONE_HOUR:
+					alarmInterval = AlarmManager.INTERVAL_HOUR;
+					mod = unroundedMinutes % 60;
+					calendar.add(Calendar.MINUTE, 60 - mod);
+					break;
+				case NotificationService.GUN_TWELVE_HOUR:
+					alarmInterval = AlarmManager.INTERVAL_HALF_DAY;
+					calendar.set(Calendar.MINUTE, 0);
+					if(hour < 8) {	// 8:00 am
+						calendar.set(Calendar.HOUR_OF_DAY, 8);
+					}
+					else if(hour < 20) {  // 8:00pm
+						calendar.set(Calendar.HOUR_OF_DAY, 20);
+					}
+					else {
+						calendar.set(Calendar.HOUR_OF_DAY, 8);
+						calendar.add(Calendar.DAY_OF_MONTH, 1);
+					}				
+					break;
+				case NotificationService.GUN_ONE_DAY:
+					alarmInterval = AlarmManager.INTERVAL_DAY;
+					calendar.set(Calendar.MINUTE, 0);
+					if(hour >= 12) {
+						calendar.add(Calendar.DAY_OF_MONTH, 1);
+					}
+					calendar.set(Calendar.HOUR_OF_DAY, 12);
+					
+					break;
+				default:
+					alarmInterval = AlarmManager.INTERVAL_HALF_DAY;
+					calendar.set(Calendar.MINUTE, 0);
+					if(hour < 8) {	// 8:00 am
+						calendar.set(Calendar.HOUR_OF_DAY, 8);
+					}
+					else if(hour < 20) {  // 8:00pm
+						calendar.set(Calendar.HOUR_OF_DAY, 20);
+					}
+					else {
+						calendar.set(Calendar.HOUR_OF_DAY, 8);
+						calendar.add(Calendar.DAY_OF_MONTH, 1);
+					}
+					break;
+			}
+						
+			//Toast.makeText(this, new SimpleDateFormat("MM-dd-yyyy HH:mm:ss").format(calendar.getTime()), Toast.LENGTH_LONG).show();
+
+			alarms.setRepeating(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(),
+					alarmInterval, pendingIntent); 
+		} 
+		catch(Exception e) {
+			System.out.println("Failed to set alarm");
+			e.printStackTrace();
+			return false;
+		}
+		
+		return true;
 	}
 
 	public boolean isOnline() {
 		ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
 		return cm.getActiveNetworkInfo() != null && cm.getActiveNetworkInfo().isConnectedOrConnecting();
+	}
+	
+	@SuppressLint("DefaultLocale")
+	public String[] getNameFromUsername(String username) {
+		String[] names = new String[3];
+		if(username.contains("@")) { // if people log in with email address
+			username = username.substring(0, username.indexOf("@"));
+		}
+		names[0] = username.substring(0, 1).toUpperCase() + username.substring(1, username.indexOf("."));
+		names[1] = username.substring(username.indexOf(".") + 1, username.indexOf(".") + 2).toUpperCase() 
+				+ username.substring(username.indexOf(".") + 2, username.length() - 2);
+		names[2] = username.substring(username.length() - 2, username.length());
+		return names;
 	}
 
 	public int getIdFromGrade(String grade) {
@@ -250,6 +406,10 @@ public class GradeViewActivity extends SlidingFragmentActivity {
 		public PullToRefreshListView listView;
 		OnItemClickListener listener;	
 		GradeAdapter adapter;
+		
+		public GradeFragment() {
+			// intentionally left empty
+		}
 
 		@Override
 		public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -309,8 +469,10 @@ public class GradeViewActivity extends SlidingFragmentActivity {
 		public Fragment getItem(int position) {
 
 			if (PageInfo.Crouton.ordinal() == position) {
+				semesterOneFragment.setRetainInstance(true);
 				return semesterOneFragment;
 			} else if (PageInfo.About.ordinal() == position) {
+				semesterTwoFragment.setRetainInstance(true);
 				return semesterTwoFragment;
 			}
 			return null;
@@ -419,7 +581,7 @@ public class GradeViewActivity extends SlidingFragmentActivity {
 		for(int iter = 0; iter < 2; iter++)
 		{
 			HashMap<String, String> percentMap = db.getPercentTitleMap(iter+1);
-			System.out.println("MAP: " + percentMap.toString()); // TODO: check if key exists
+			System.out.println("MAP: " + percentMap.toString());
 	
 			JSONArray sem = iter == 0 ? result.getJSONArray("semester1") : result.getJSONArray("semester2");
 			ArrayList<Grade> activeList = iter == 0 ? semesterList1 : semesterList2;

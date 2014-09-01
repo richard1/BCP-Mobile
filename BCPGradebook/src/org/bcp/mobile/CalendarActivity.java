@@ -61,6 +61,9 @@ public class CalendarActivity extends SlidingFragmentActivity {
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		
+		NotificationService.resetNotificationInfo();
+		
 		setContentView(R.layout.activity_calendar);
 		setTitle("Calendar");
 		setBehindContentView(R.layout.menu_frame);
@@ -77,7 +80,7 @@ public class CalendarActivity extends SlidingFragmentActivity {
 			calUrl2 += (month + 1) + "/1/" + year + CALENDAR_MODULE;
 		}
 		
-		displayCrouton("GETTING EVENTS IN " + getStringMonth(month) + "...", 3000, Style.INFO);
+		//displayCrouton("GETTING EVENTS IN " + getStringMonth(month) + "...", 3000, Style.INFO);
 		
 		listener = new OnItemClickListener() {
 			@Override
@@ -254,11 +257,12 @@ public class CalendarActivity extends SlidingFragmentActivity {
 		if(sm.isMenuShowing()) {
 			toggle();
 		}
+		NotificationService.resetNotificationInfo();
 	}
 	
 	@Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        menu.add("Scroll")
+        menu.add("Today")
             .setIcon(R.drawable.calendar_today)
             .setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
         return true;
@@ -267,7 +271,7 @@ public class CalendarActivity extends SlidingFragmentActivity {
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		// Handle item selection
-		if(item.getTitle().equals("Scroll")) {
+		if(item.getTitle().equals("Today")) {
 			scrollToPosition(closestItem);
 			return true;
 		}
@@ -298,12 +302,6 @@ public class CalendarActivity extends SlidingFragmentActivity {
 		}
 		return "";
 	}
-	
-	/*public String formatEventText(String theText) {
-		String newText = theText;
-		newText.replaceAll("Location:", "\nLocation:").replaceAll("Time:", "\nTime:").replaceAll("Visit this Link", "");
-		return newText;
-	}*/
 	
 	public String monthToString(int month) {
 		switch(month) {
