@@ -176,6 +176,8 @@ public class GradeViewActivity extends SlidingFragmentActivity {
         		"and let you know of any changes.");
         builder.setPositiveButton("Sign me up!", new DialogInterface.OnClickListener() {
         	public void onClick(DialogInterface dialog, int id) {
+        		SharedPreferences frequencyPref = getSharedPreferences("frequency", Context.MODE_PRIVATE);
+        		frequencyPref.edit().putInt("frequency", NotificationService.GUN_TWELVE_HOUR).apply();
         		builderConfirm.show();
         	}
         });
