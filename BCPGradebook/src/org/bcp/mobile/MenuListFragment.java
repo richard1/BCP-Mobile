@@ -82,16 +82,19 @@ public class MenuListFragment extends ListFragment {
 				break;
 			case 2: // Announcements
 				intent = new Intent(getActivity(), AnnouncementsActivity.class);
+				//intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
 				startActivity(intent);
 				getActivity().overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
 				break;
 			case 3: // Calendar
 				intent = new Intent(getActivity(), CalendarActivity.class);
+				//intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
 				startActivity(intent);
 				getActivity().overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
 				break;
 			case 4: // News
 				intent = new Intent(getActivity(), NewsRssActivity.class);
+				//intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
 				startActivity(intent);
 				getActivity().overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
 				break;

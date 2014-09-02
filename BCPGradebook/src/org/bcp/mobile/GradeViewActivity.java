@@ -222,7 +222,7 @@ public class GradeViewActivity extends SlidingFragmentActivity {
 		super.onStart();
 	}
 
-	protected void onDestroy() {
+	public void onDestroy() {
 		Crouton.cancelAllCroutons();
 		super.onDestroy();
 	}
@@ -243,16 +243,20 @@ public class GradeViewActivity extends SlidingFragmentActivity {
 	    }
 	}
 
-	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+	public void onActivityResult(int requestCode, int resultCode, Intent data) {
 		overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
 	}
 	
-	protected void onResume() {
+	public void onResume() {
 		super.onResume();
 		if(sm.isMenuShowing()) {
 			toggle();
 		}
 		NotificationService.resetNotificationInfo();
+	}
+	
+	public void onPause() {
+		super.onPause();		
 	}
 	
 	private boolean setNotificationAlarm() {
