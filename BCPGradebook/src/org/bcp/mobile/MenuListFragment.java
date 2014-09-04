@@ -76,27 +76,31 @@ public class MenuListFragment extends ListFragment {
 				break;
 			case 1: // Grades
 				intent = new Intent(getActivity(), GradeViewActivity.class);
-				intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+				//intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
 				startActivity(intent);
 				getActivity().overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
+				getActivity().finish();
 				break;
 			case 2: // Announcements
 				intent = new Intent(getActivity(), AnnouncementsActivity.class);
 				//intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
 				startActivity(intent);
 				getActivity().overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
+				getActivity().finish();
 				break;
 			case 3: // Calendar
 				intent = new Intent(getActivity(), CalendarActivity.class);
 				//intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
 				startActivity(intent);
 				getActivity().overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
+				getActivity().finish();
 				break;
 			case 4: // News
 				intent = new Intent(getActivity(), NewsRssActivity.class);
 				//intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
 				startActivity(intent);
 				getActivity().overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
+				getActivity().finish();
 				break;
 			case 5: // About
 	        	about = "Made with ♥ by Richard Lin '13, with help from Jonathan Chang '13\n\nInspired by Bryce Pauken '14\n\n" +
@@ -187,6 +191,7 @@ public class MenuListFragment extends ListFragment {
 		        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
 		        startActivity(intent);
 		        getActivity().overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
+		        getActivity().finish();
 		        break;
 		}
     }

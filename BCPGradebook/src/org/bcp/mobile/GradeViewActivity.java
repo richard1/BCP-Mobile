@@ -29,7 +29,6 @@ import android.annotation.SuppressLint;
 import android.app.AlarmManager;
 import android.app.AlertDialog;
 import android.app.PendingIntent;
-import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -55,6 +54,7 @@ import org.bcp.mobile.R;
 import com.actionbarsherlock.app.SherlockFragment;
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuItem;
+import com.actionbarsherlock.view.Window;
 import com.handmark.pulltorefresh.library.PullToRefreshBase;
 import com.handmark.pulltorefresh.library.PullToRefreshBase.OnRefreshListener;
 import com.handmark.pulltorefresh.library.PullToRefreshListView;
@@ -81,7 +81,6 @@ public class GradeViewActivity extends SlidingFragmentActivity {
 	private String username;
 	private String encryptedPassword;
 
-	private ProgressDialog progress;
 	private DatabaseHandler db;
 	private AssignmentsDatabase adb;
 	private DecimalFormat decimalFormat = new DecimalFormat("##0.00");
@@ -99,6 +98,7 @@ public class GradeViewActivity extends SlidingFragmentActivity {
 		super.onCreate(savedInstanceState);
 		
 		NotificationService.resetNotificationInfo();
+		requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
 				
 		Bundle humbleBundle = new Bundle();
 		humbleBundle.putBoolean("showSemesterOne", true);
@@ -190,11 +190,7 @@ public class GradeViewActivity extends SlidingFragmentActivity {
 	       	}
 	   	});
         
-		progress = new ProgressDialog(this);
-		progress.setTitle("Welcome" + (username != null && username.length() > 0 ? ", " + getNameFromUsername(username)[0] : ""));
-		progress.setMessage("Fetching your grades...");
-		progress.setCanceledOnTouchOutside(false);
-		progress.show();
+		setSupportProgressBarIndeterminateVisibility(Boolean.TRUE);
 		
 		SharedPreferences hasLoggedInPref = getSharedPreferences("hasLoggedIn", MODE_PRIVATE);
 
@@ -203,11 +199,11 @@ public class GradeViewActivity extends SlidingFragmentActivity {
 			getSharedPreferences("hasLoggedIn", MODE_PRIVATE).edit().putInt("hasLoggedIn", 1).apply();
 		}
 		else {
-			progress.show();
+			setSupportProgressBarIndeterminateVisibility(Boolean.TRUE);
 		}
 		
 		if(!isOnline()) {
-			progress.dismiss();
+			setSupportProgressBarIndeterminateVisibility(Boolean.FALSE);
 		} else {
 			System.out.println("CONNECTED!");
 		}
@@ -515,6 +511,12 @@ public class GradeViewActivity extends SlidingFragmentActivity {
 		@Override
 		protected String doInBackground(String... urls) {
 			System.out.println("starting download");
+			runOnUiThread(new Runnable() {
+			     @Override
+			     public void run() {
+			    	 setSupportProgressBarIndeterminateVisibility(Boolean.TRUE);
+			     }
+			});
 			try {
 				if(!isOnline()) {
 					return "No connection";
@@ -558,9 +560,11 @@ public class GradeViewActivity extends SlidingFragmentActivity {
 					displayCrouton("UNEXPECTED ERROR - " + result, 3000, Style.ALERT);
 				}
 			}
-			progress.dismiss();
-			semesterOneFragment.listView.onRefreshComplete();
-			semesterTwoFragment.listView.onRefreshComplete();
+			setSupportProgressBarIndeterminateVisibility(Boolean.FALSE);
+			if(semesterOneFragment != null && semesterOneFragment.listView != null)
+				semesterOneFragment.listView.onRefreshComplete();
+			if(semesterTwoFragment != null && semesterTwoFragment.listView != null)
+				semesterTwoFragment.listView.onRefreshComplete();
 			super.onPostExecute(result);
 		}
 	}
@@ -701,7 +705,7 @@ public class GradeViewActivity extends SlidingFragmentActivity {
             if (entity != null) {
                 System.out.println("Response content length: " + entity.getContentLength());
                 String resp = EntityUtils.toString(entity);
-                //System.out.println(resp);
+                System.out.println(resp);
                 output = resp;
             }
         } catch(Exception e) {

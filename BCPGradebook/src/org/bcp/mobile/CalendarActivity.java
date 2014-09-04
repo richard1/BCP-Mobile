@@ -16,6 +16,7 @@ import org.bcp.mobile.R;
 
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuItem;
+import com.actionbarsherlock.view.Window;
 import com.handmark.pulltorefresh.library.PullToRefreshBase;
 import com.handmark.pulltorefresh.library.PullToRefreshListView;
 import com.handmark.pulltorefresh.library.PullToRefreshBase.OnRefreshListener;
@@ -51,7 +52,6 @@ public class CalendarActivity extends SlidingFragmentActivity {
 	private PullToRefreshListView myList;
 	private EventsAdapter adapter;
 	private OnItemClickListener listener;
-	private View calendarLoading;
 	private int month;
 	private int year;
 	private int dayOfMonth;
@@ -63,6 +63,7 @@ public class CalendarActivity extends SlidingFragmentActivity {
 		super.onCreate(savedInstanceState);
 		
 		NotificationService.resetNotificationInfo();
+		requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
 		
 		setContentView(R.layout.activity_calendar);
 		setTitle("Calendar");
@@ -79,9 +80,7 @@ public class CalendarActivity extends SlidingFragmentActivity {
 		else {
 			calUrl2 += (month + 1) + "/1/" + year + CALENDAR_MODULE;
 		}
-		
-		//displayCrouton("GETTING EVENTS IN " + getStringMonth(month) + "...", 3000, Style.INFO);
-		
+				
 		listener = new OnItemClickListener() {
 			@Override
 			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -112,7 +111,7 @@ public class CalendarActivity extends SlidingFragmentActivity {
 		myList.setAdapter(adapter);
 		myList.setOnItemClickListener(listener);
 		
-		calendarLoading = findViewById(R.id.calendar_loading);
+		setSupportProgressBarIndeterminateVisibility(Boolean.TRUE);
 		
 		myList.setOnRefreshListener(new OnRefreshListener<ListView>() {
 			@Override
@@ -127,6 +126,12 @@ public class CalendarActivity extends SlidingFragmentActivity {
 		@Override
 		protected String doInBackground(String... urls) {
 			Document doc;
+			runOnUiThread(new Runnable() {
+			     @Override
+			     public void run() {
+			    	 setSupportProgressBarIndeterminateVisibility(Boolean.TRUE);
+			     }
+			});
 			try {
 				events.clear();
 				int numEvents = 0;
@@ -200,7 +205,7 @@ public class CalendarActivity extends SlidingFragmentActivity {
 		protected void onPostExecute(String result) {
 			if(!isOnline()) {
 				displayCrouton("NO INTERNET CONNECTION", 3000, Style.ALERT);
-				calendarLoading.setVisibility(View.GONE);
+				setSupportProgressBarIndeterminateVisibility(Boolean.FALSE);
 			} else {
 				refreshList();
 			}
@@ -223,7 +228,7 @@ public class CalendarActivity extends SlidingFragmentActivity {
 		adapter = new EventsAdapter(this, R.layout.events_row, events);
 		myList.setAdapter(adapter);
 		myList.setOnItemClickListener(listener);
-		calendarLoading.setVisibility(View.GONE);
+		setSupportProgressBarIndeterminateVisibility(Boolean.FALSE);
 	}
 		
 	public void displayCrouton(String text, int timeMilli, Style style) {

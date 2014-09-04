@@ -18,6 +18,7 @@ import org.xmlpull.v1.XmlPullParserException;
 import org.bcp.mobile.R;
 
 import com.actionbarsherlock.view.MenuItem;
+import com.actionbarsherlock.view.Window;
 import com.handmark.pulltorefresh.library.PullToRefreshBase;
 import com.handmark.pulltorefresh.library.PullToRefreshBase.OnRefreshListener;
 import com.handmark.pulltorefresh.library.PullToRefreshListView;
@@ -47,7 +48,6 @@ public class NewsRssActivity extends SlidingFragmentActivity {
 	private PullToRefreshListView myList;
 	private NewsAdapter adapter;
 	private ArrayList<Item> listContent = new ArrayList<Item>();
-	private View newsLoading;
 	
 	private OnItemClickListener listener = new OnItemClickListener() {
 		@Override
@@ -67,13 +67,12 @@ public class NewsRssActivity extends SlidingFragmentActivity {
 		super.onCreate(savedInstanceState);
 		
 		NotificationService.resetNotificationInfo();
+		requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
 		
 		setContentView(R.layout.activity_news_rss);
 		setTitle("News");
 		setBehindContentView(R.layout.menu_frame);
-		
-		//displayCrouton("RETRIEVING NEWS...", 3000, Style.INFO);
-		
+				
 		if (savedInstanceState == null) {
 			mFrag = new MenuListFragment();
 			getSupportFragmentManager().beginTransaction().replace(R.id.menu_frame, mFrag).commit();
@@ -95,7 +94,7 @@ public class NewsRssActivity extends SlidingFragmentActivity {
 		myList.setAdapter(adapter);
 		myList.setOnItemClickListener(listener);
 		
-		newsLoading = findViewById(R.id.news_loading);
+		setSupportProgressBarIndeterminateVisibility(Boolean.TRUE);
 		
 		myList.setOnRefreshListener(new OnRefreshListener<ListView>() {
 			@Override
@@ -139,6 +138,12 @@ public class NewsRssActivity extends SlidingFragmentActivity {
 	private class DownloadNewsTask extends AsyncTask<String, Void, String> {
 		@Override
 		protected String doInBackground(String... urls) {
+			runOnUiThread(new Runnable() {
+			     @Override
+			     public void run() {
+			    	 setSupportProgressBarIndeterminateVisibility(Boolean.TRUE);
+			     }
+			});
 			try {
 	            return loadXmlFromNetwork(urls[0]);
 	        } catch (IOException e) {
@@ -157,7 +162,7 @@ public class NewsRssActivity extends SlidingFragmentActivity {
 		protected void onPostExecute(String result) {
 			if(!isOnline()) {
 				displayCrouton("NO INTERNET CONNECTION", 3000, Style.ALERT);
-				newsLoading.setVisibility(View.GONE);
+				setSupportProgressBarIndeterminateVisibility(Boolean.FALSE);
 			} else {
 				refreshList();
 			}
@@ -247,7 +252,7 @@ public class NewsRssActivity extends SlidingFragmentActivity {
 		adapter = new NewsAdapter(this, R.layout.news_row, listContent);
 		myList.setAdapter(adapter);
 		myList.setOnItemClickListener(listener);
-		newsLoading.setVisibility(View.GONE);
+		setSupportProgressBarIndeterminateVisibility(Boolean.FALSE);
 	}
 	
 	public void displayCrouton(String text, int timeMilli, Style style) {

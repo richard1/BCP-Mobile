@@ -15,6 +15,7 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import com.actionbarsherlock.view.MenuItem;
+import com.actionbarsherlock.view.Window;
 import com.handmark.pulltorefresh.library.PullToRefreshBase;
 import com.handmark.pulltorefresh.library.PullToRefreshListView;
 import com.handmark.pulltorefresh.library.PullToRefreshBase.OnRefreshListener;
@@ -48,7 +49,6 @@ public class AnnouncementsActivity extends SlidingFragmentActivity {
 	private PullToRefreshListView myList;
 	private NewsAdapter adapter;
 	private ArrayList<Item> listContent = new ArrayList<Item>();
-	private View announcementsLoading;
 	
 	OnItemClickListener listener = new OnItemClickListener() {
 		@Override
@@ -63,13 +63,12 @@ public class AnnouncementsActivity extends SlidingFragmentActivity {
 		super.onCreate(savedInstanceState);
 		
 		NotificationService.resetNotificationInfo();
+		requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
 		
 		setContentView(R.layout.activity_announcements);
 		setTitle("Announcements");
 		setBehindContentView(R.layout.menu_frame);
-		
-		//displayCrouton("RETRIEVING ANNOUNCEMENTS", 3000, Style.INFO);
-		
+				
 		if (savedInstanceState == null) {
 			mFrag = new MenuListFragment();
 			getSupportFragmentManager().beginTransaction().replace(R.id.menu_frame, mFrag).commit();
@@ -91,7 +90,7 @@ public class AnnouncementsActivity extends SlidingFragmentActivity {
 		myList.setAdapter(adapter);
 		myList.setOnItemClickListener(listener);
 		
-		announcementsLoading = findViewById(R.id.announcements_loading);
+		setSupportProgressBarIndeterminateVisibility(Boolean.TRUE);
 		
 		myList.setOnRefreshListener(new OnRefreshListener<ListView>() {
 			@Override
@@ -136,6 +135,12 @@ public class AnnouncementsActivity extends SlidingFragmentActivity {
 		@Override
 		protected String doInBackground(String... urls) {
 			Document doc;
+			runOnUiThread(new Runnable() {
+			     @Override
+			     public void run() {
+			    	 setSupportProgressBarIndeterminateVisibility(Boolean.TRUE);
+			     }
+			});
 			try {
 				listContent.clear();
 				
@@ -174,7 +179,7 @@ public class AnnouncementsActivity extends SlidingFragmentActivity {
 		protected void onPostExecute(String result) {
 			if(!isOnline()) {
 				displayCrouton("NO INTERNET CONNECTION", 3000, Style.ALERT);
-				announcementsLoading.setVisibility(View.GONE);
+				setSupportProgressBarIndeterminateVisibility(Boolean.FALSE);
 			} else {
 				refreshList();
 			}
@@ -188,7 +193,7 @@ public class AnnouncementsActivity extends SlidingFragmentActivity {
 		adapter = new NewsAdapter(this, R.layout.news_row, listContent);
 		myList.setAdapter(adapter);
 		myList.setOnItemClickListener(listener);
-		announcementsLoading.setVisibility(View.GONE);
+		setSupportProgressBarIndeterminateVisibility(Boolean.FALSE);
 	}
 	
 	public boolean isOnline() {
