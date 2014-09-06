@@ -47,3 +47,20 @@ Contributing
 ============
 
 This code is licensed under the MIT license.  If you're feeling like an adventurous supa-hacka, make sure to submit a pull request.  The Android app is currently decommissioned, but this repository will remain public.  Feel free to use it as reference for your future projects!
+
+### Final Stats
+
+
+Label | Value
+----- | -----
+Development time | 488 days
+App version | 1.3
+Total installs | 154
+Total ratings | 14
+Average rating | 4.93 / 5
+Price | Free
+Most popular device | Samsung Galaxy S4 (14.18%)
+Most popular carrier | AT&T (47.01%)
+Crashes recorded | 1
+Published onto Play Store | September 8, 2013
+Decommissioned | September ?, 2014
